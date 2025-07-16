@@ -4,15 +4,20 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
+import 'package:tac/models/jobApplications/jobApplications_model.dart';
 import 'package:tac/modules/checkin/checkin_overlay.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
 import 'package:tac/modules/fiilters/sort_overlay.dart';
-import 'job_controller.dart';
-import 'job_model.dart';
+import '../newjob section/job_controller.dart';
+// import '../newjob section/job_model.dart';
+import 'package:tac/models/jobApplications/job_model.dart';
 import 'package:tac/modules/home/components/search_field.dart';
+
+import '../newjob section/job_model.dart';
 
 class MyJobsView1 extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
+  // final JobApplicationController jobController = Get.put(JobApplicationController());
 
   MyJobsView1({super.key});
 
@@ -104,20 +109,70 @@ class MyJobsView1 extends StatelessWidget {
 
   Widget _buildJobList() {
     var jobs = jobController.filteredJobs;
+
+    if (jobController.isLoading.value) {
+      return Center(child: CircularProgressIndicator());
+    }
+    if (jobs.isEmpty) {
+      return Center(child: Text('No jobs found', style: TextStyle(color: Colors.white)));
+    }
+    // var jobs = jobController.filteredJobs;
     return ListView.separated(
       itemCount: jobs.length,
       separatorBuilder: (_, __) => SizedBox(height: AppSpacing.fifteenVertical),
       itemBuilder: (context, index) {
-        return JobCardWidget(job: jobs[index]);
+        final jobApp = jobs[index];
+        final job = jobApp.job;
+
+        final jobModel = JobModel(
+          title: job.title,
+          guardName: job.contractor.name,
+          location: job.location,
+          distance: job.latitude,
+          time: job.shifts.isNotEmpty
+              ? '${job.shifts[0].startTime} - ${job.shifts[0].endTime}'
+              : '',
+          price: '${job.payPerHour}/hr',
+          status: _mapStatus(jobApp.currentStatus.status),
+          statusLabel: jobApp.currentStatus.status.capitalizeFirst ?? '',
+          showButton: true,
+          buttonText: 'Check In',
+          rating: '',
+        );
+        return JobCardWidget(
+          job: jobModel,
+          shiftId: jobApp.assignedShift.id, // key update
+          latitude: job.latitude,
+          longitude: job.longitude,
+        );
       },
     );
+  }
+
+  String _mapStatus(String apiStatus) {
+    switch (apiStatus.toLowerCase()) {
+      case 'approved':
+        return 'In Progress';
+      case 'pending':
+        return 'Pending';
+      case 'completed':
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return apiStatus.capitalizeFirst ?? '';
+    }
   }
 }
 
 class JobCardWidget extends StatelessWidget {
   final JobModel job;
+  final String shiftId;
+  final String latitude;
+  final String longitude;
 
-  const JobCardWidget({super.key, required this.job});
+  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude, required this.longitude});
+
 
   Color _getCardColor() {
     switch (job.status) {
@@ -277,8 +332,9 @@ class JobCardWidget extends StatelessWidget {
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => CheckInPage(),
+                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude),
                     );
+
                   } else if (job.buttonText == 'Check-Out') {
                     //Get.to(() => CheckOutScreen()); // Add this screen if not yet created
                   } else if (job.buttonText == 'Share your review') {

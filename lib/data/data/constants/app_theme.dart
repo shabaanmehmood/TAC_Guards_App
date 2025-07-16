@@ -68,16 +68,16 @@ class AppTheme {
       titleTextStyle: AppTypography.kBold24.copyWith(color: AppColors.kWhite),
       elevation: 0,
     ),
-    tabBarTheme: TabBarTheme(
-      labelPadding: EdgeInsets.only(
-        left: 10,
-        right: AppSpacing.tenHorizontal,
-      ),
-      indicatorSize: TabBarIndicatorSize.label,
-      labelStyle: AppTypography.kBold20,
-      labelColor: AppColors.kWhite,
-      unselectedLabelColor: Colors.grey,
-    ),
+    // tabBarTheme: TabBarTheme(
+    //   labelPadding: EdgeInsets.only(
+    //     left: 10,
+    //     right: AppSpacing.tenHorizontal,
+    //   ),
+    //   indicatorSize: TabBarIndicatorSize.label,
+    //   labelStyle: AppTypography.kBold20,
+    //   labelColor: AppColors.kWhite,
+    //   unselectedLabelColor: Colors.grey,
+    // ),
     fontFamily: 'Hanken Grotesk',
     inputDecorationTheme: InputDecorationTheme(
       contentPadding: EdgeInsets.symmetric(

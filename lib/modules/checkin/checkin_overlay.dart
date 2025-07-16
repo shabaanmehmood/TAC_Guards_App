@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tac/controllers/user_controller.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
@@ -7,11 +8,19 @@ import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/checkin/jobcheckin/job_checkin_screen.dart';
 import 'package:tac/widhets/common%20widgets/buttons/job_card.dart';
 import 'package:tac/widhets/common%20widgets/buttons/myJob_card.dart';
+import '../newjob section/job_model.dart';
 import 'check_in_controller.dart';
 import 'dummy_data.dart'; // Import the dummy data file
 
 class CheckInPage extends StatelessWidget {
+  final JobModel job;
+  final String shiftId;
+  final String latitude;
+  final String longitude;
   final CheckInController controller = Get.put(CheckInController());
+  final UserController userController = Get.find<UserController>();
+
+  CheckInPage({required this.job, required this.shiftId, required this.latitude, required this.longitude});
 
   @override
   Widget build(BuildContext context) {
@@ -83,9 +92,9 @@ class CheckInPage extends StatelessWidget {
               SizedBox(height: 20),
               _infoCard(
                 title: 'Job Details',
-                subtitle: DummyData.jobTitle,
-                location: DummyData.jobLocation,
-                time: DummyData.jobTime,
+                subtitle: job.title,
+                location: job.location,
+                time: job.time,
               ),
               SizedBox(height: 12),
               _infoCard(
@@ -144,9 +153,7 @@ class CheckInPage extends StatelessWidget {
                       ),
                       onPressed: () {
                         if (controller.isChecked.value) {
-                          Get.to(JobCheckinScreen());
-
-                          // check-in logic
+                          controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude);
                         } else {
                           Get.snackbar(
                             "Acknowledgement Required",
@@ -156,7 +163,16 @@ class CheckInPage extends StatelessWidget {
                           );
                         }
                       },
-                      child: Text('Confirm Check-in'),
+                      child: controller.isLoading.value
+                          ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                          : Text('Confirm Check-in'),
                     ),
                   ),
                 ],

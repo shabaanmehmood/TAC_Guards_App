@@ -653,6 +653,51 @@ class MyApIService {
     return response;
   }
 
+  Future<http.Response> getJobApplicationsByGuardId(String userId) async {
+    var functionUrl = 'jobApplication/applications/$userId';
+
+    final response = await http.get(Uri.parse(baseurl + functionUrl),
+      headers: {
+        "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      debugPrint('Job applications: $json');
+    } else {
+      debugPrint('Error: ${response.statusCode} - ${response.body}');
+    }
+    return response;
+  }
+
+
+  Future<http.Response> checkinGuard(String shiftId, String guardId, String latitude, String longitude) async {
+    var functionUrl = 'shiftAttendance';
+
+    final response = await http.post(Uri.parse(baseurl + functionUrl),
+      headers: {
+        "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: jsonEncode({
+        "shiftId": shiftId,
+        "guardId": guardId,
+        "latitude": latitude,
+        "longitude": longitude,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      debugPrint('Check-in response: $json');
+    } else {
+      debugPrint('Error: ${response.statusCode} - ${response.body}');
+    }
+    return response;
+  }
+
 
 // Future<http.Response> getData(String url, {String? controllerName}) async {
   //   String mainUrl =

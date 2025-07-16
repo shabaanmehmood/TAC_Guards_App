@@ -11,7 +11,7 @@ import 'package:tac/modules/Messages/messages.dart';
 import 'package:tac/modules/account/account.dart';
 import 'package:tac/modules/account/components/Earning/earnings_screen.dart';
 import 'package:tac/modules/home/home_view.dart';
-import 'package:tac/modules/newjob%20section/my_jobs_view.dart';
+import 'package:tac/modules/jobApplications/my_jobs_view.dart';
 
 import '../../controllers/user_controller.dart';
 
