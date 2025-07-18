@@ -698,6 +698,31 @@ class MyApIService {
     return response;
   }
 
+  Future<http.Response> checkOutGuard(String shiftId, String guardId, String latitude, String longitude) async {
+    var functionUrl = 'shiftAttendance/checkout';
+
+    final response = await http.post(Uri.parse(baseurl + functionUrl),
+      headers: {
+        "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: jsonEncode({
+        "shiftId": shiftId,
+        "guardId": guardId,
+        "latitude": latitude,
+        "longitude": longitude,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      debugPrint('Check-out response: $json');
+    } else {
+      debugPrint('Error: ${response.statusCode} - ${response.body}');
+    }
+    return response;
+  }
+
 
 // Future<http.Response> getData(String url, {String? controllerName}) async {
   //   String mainUrl =

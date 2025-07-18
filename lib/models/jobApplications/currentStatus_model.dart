@@ -1,7 +1,10 @@
+import 'package:tac/models/jobApplications/shift_model.dart';
+
 class CurrentStatus {
   final String id;
   final String status;
   final String reason;
+
 
   CurrentStatus({
     required this.id,
@@ -11,7 +14,7 @@ class CurrentStatus {
 
   factory CurrentStatus.fromJson(Map<String, dynamic> json) => CurrentStatus(
     id: json['id'],
-    status: json['status'],
-    reason: json['reason'],
+    status: json['status'] ?? '',
+    reason: json['reason'] ?? '',
   );
 }

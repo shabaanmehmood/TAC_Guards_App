@@ -108,42 +108,26 @@ class MyJobsView1 extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    var jobs = jobController.filteredJobs;
-
+    var jobs = jobController.filteredJobModels;
     if (jobController.isLoading.value) {
       return Center(child: CircularProgressIndicator());
     }
     if (jobs.isEmpty) {
       return Center(child: Text('No jobs found', style: TextStyle(color: Colors.white)));
     }
-    // var jobs = jobController.filteredJobs;
     return ListView.separated(
       itemCount: jobs.length,
       separatorBuilder: (_, __) => SizedBox(height: AppSpacing.fifteenVertical),
       itemBuilder: (context, index) {
-        final jobApp = jobs[index];
-        final job = jobApp.job;
-
-        final jobModel = JobModel(
-          title: job.title,
-          guardName: job.contractor.name,
-          location: job.location,
-          distance: job.latitude,
-          time: job.shifts.isNotEmpty
-              ? '${job.shifts[0].startTime} - ${job.shifts[0].endTime}'
-              : '',
-          price: '${job.payPerHour}/hr',
-          status: _mapStatus(jobApp.currentStatus.status),
-          statusLabel: jobApp.currentStatus.status.capitalizeFirst ?? '',
-          showButton: true,
-          buttonText: 'Check In',
-          rating: '',
-        );
+        final jobApp = jobController.filteredJobs[index];
+        final jobCard = jobs[index];
         return JobCardWidget(
-          job: jobModel,
-          shiftId: jobApp.assignedShift.id, // key update
-          latitude: job.latitude,
-          longitude: job.longitude,
+          job: jobCard,
+          shiftId: jobApp.assignedShift.id,
+          latitude: jobApp.job.latitude,
+          longitude: jobApp.job.longitude,
+          isCheckInRequired: jobApp.assignedShift.checkInRequired ?? false,
+          isCheckOutRequired: jobApp.assignedShift.checkOutRequired ?? false,
         );
       },
     );
@@ -151,8 +135,8 @@ class MyJobsView1 extends StatelessWidget {
 
   String _mapStatus(String apiStatus) {
     switch (apiStatus.toLowerCase()) {
-      case 'approved':
-        return 'In Progress';
+      case 'active':
+        return 'Active';
       case 'pending':
         return 'Pending';
       case 'completed':
@@ -170,13 +154,15 @@ class JobCardWidget extends StatelessWidget {
   final String shiftId;
   final String latitude;
   final String longitude;
+  final bool isCheckInRequired;
+  final bool isCheckOutRequired;
 
-  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude, required this.longitude});
+  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude, required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired});
 
 
   Color _getCardColor() {
     switch (job.status) {
-      case 'In Progress':
+      case 'Active':
         return AppColors.kGreenS;
       case 'Awaiting':
         return AppColors.kYellowS;
@@ -191,7 +177,7 @@ class JobCardWidget extends StatelessWidget {
 
   Color _getStatusTextColor() {
     switch (job.status) {
-      case 'In Progress':
+      case 'Active':
         return AppColors.kgreen;
       case 'Awaiting':
         return AppColors.kalert;
@@ -327,16 +313,27 @@ class JobCardWidget extends StatelessWidget {
                   minimumSize: Size(double.infinity, 40),
                 ),
                 onPressed: () {
-                  if (job.buttonText == 'Check In') {
+                  if (isCheckInRequired == true && isCheckOutRequired == false) {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude),
+                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude,
+                        isCheckInRequired: isCheckInRequired,
+                        isCheckOutRequired: isCheckOutRequired),
                     );
 
-                  } else if (job.buttonText == 'Check-Out') {
-                    //Get.to(() => CheckOutScreen()); // Add this screen if not yet created
+                  }
+                  else if (isCheckInRequired == false && isCheckOutRequired == true) {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude,
+                          isCheckInRequired: isCheckInRequired,
+                          isCheckOutRequired: isCheckOutRequired),
+                    );
+
                   } else if (job.buttonText == 'Share your review') {
                     Get.to(() =>
                         SubmitReviewScreen()); // Add this screen if not yet created

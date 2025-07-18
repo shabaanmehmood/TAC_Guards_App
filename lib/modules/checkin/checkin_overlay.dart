@@ -17,10 +17,12 @@ class CheckInPage extends StatelessWidget {
   final String shiftId;
   final String latitude;
   final String longitude;
+  final bool isCheckInRequired;
+  final bool isCheckOutRequired;
   final CheckInController controller = Get.put(CheckInController());
   final UserController userController = Get.find<UserController>();
 
-  CheckInPage({required this.job, required this.shiftId, required this.latitude, required this.longitude});
+  CheckInPage({required this.job, required this.shiftId, required this.latitude, required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class CheckInPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Confirm Your Check-in',
+                    isCheckInRequired ? 'Confirm Your Check-in' : 'Confirm Your Check-out',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -153,7 +155,12 @@ class CheckInPage extends StatelessWidget {
                       ),
                       onPressed: () {
                         if (controller.isChecked.value) {
-                          controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude);
+                         if(isCheckInRequired == true && isCheckOutRequired == false) {
+                           controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude);
+                         }
+                         else if (isCheckOutRequired == true && isCheckInRequired == false) {
+                           controller.checkOut(shiftId, userController.userData.value!.id!, latitude, longitude);
+                         }
                         } else {
                           Get.snackbar(
                             "Acknowledgement Required",
@@ -172,7 +179,7 @@ class CheckInPage extends StatelessWidget {
                           strokeWidth: 2,
                         ),
                       )
-                          : Text('Confirm Check-in'),
+                          : Text(isCheckInRequired ? 'Confirm Check-in' : 'Confirm Check-out',),
                     ),
                   ),
                 ],
