@@ -21,6 +21,7 @@ import '../../widhets/common widgets/buttons/adaptive_dialogue.dart';
 import '../../widhets/common widgets/buttons/password_field.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
 import '../../widhets/common widgets/buttons/primary_container.dart';
+import 'google_auth.dart';
 
 class SignInViewController extends GetxController {
   var passwordVisible = false.obs;
@@ -240,21 +241,27 @@ class SignInView extends StatelessWidget {
                       PrimaryContainer(
                           width: double.maxFinite,
                           color: Colors.transparent,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.asset(
-                                AppAssets.kGoogleLogo,
-                                fit: BoxFit.contain,
-                              ),
-                              SizedBox(width: AppSpacing.twentyHorizontal,),
-                              Text(
-                                'Continue with Google',
-                                style: AppTypography.kBold18.copyWith(
-                                    color: AppColors.kWhite
+                          child: GestureDetector(
+                            onTap: () async {
+                              final googleAuthService = GoogleAuthService();
+                              await googleAuthService.signInWithGoogle();
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  AppAssets.kGoogleLogo,
+                                  fit: BoxFit.contain,
                                 ),
-                              )
-                            ],
+                                SizedBox(width: AppSpacing.twentyHorizontal,),
+                                Text(
+                                  'Continue with Google',
+                                  style: AppTypography.kBold18.copyWith(
+                                      color: AppColors.kWhite
+                                  ),
+                                )
+                              ],
+                            ),
                           )
                       ),
                       SizedBox(height: AppSpacing.twentyVertical,),

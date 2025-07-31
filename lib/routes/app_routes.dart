@@ -1,5 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/account/account.dart';
@@ -38,16 +40,20 @@ class AppRoutes {
       page: () => SignUpView(),
     ),
     GetPage<Route<dynamic>>(
-      name: landing,
-      page: () => const LandingPage(),
-    ),
-    GetPage<Route<dynamic>>(
       name: profile,
       page: () => const AccountScreen(),
     ),
     GetPage<Route<dynamic>>(
       name: guards,
       page: () => const GuardsView(),
+    ),
+
+    GetPage(
+      name: landing,
+      page: () => LandingPage(
+        // Check if arguments were passed & extract selectedIndex if present, otherwise default to 0
+        selectedIndex: (Get.arguments != null && Get.arguments['selectedIndex'] != null) ? Get.arguments['selectedIndex'] : 0,
+      ),
     ),
 
     // GetPage<Route<dynamic>>(

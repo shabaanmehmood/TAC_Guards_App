@@ -5,6 +5,7 @@ import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/models/jobApplications/jobApplications_model.dart';
+import 'package:tac/models/user_model.dart';
 import 'package:tac/modules/checkin/checkin_overlay.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
 import 'package:tac/modules/fiilters/sort_overlay.dart';
@@ -109,30 +110,45 @@ class MyJobsView1 extends StatelessWidget {
 
   Widget _buildJobList() {
     var jobs = jobController.filteredJobModels;
-    if (jobController.isLoading.value) {
-      return Center(child: CircularProgressIndicator());
-    }
-    if (jobs.isEmpty) {
-      return Center(child: Text('No jobs found', style: TextStyle(color: Colors.white)));
-    }
-    return ListView.separated(
-      itemCount: jobs.length,
-      separatorBuilder: (_, __) => SizedBox(height: AppSpacing.fifteenVertical),
-      itemBuilder: (context, index) {
-        final jobApp = jobController.filteredJobs[index];
-        final jobCard = jobs[index];
-        return JobCardWidget(
-          job: jobCard,
-          shiftId: jobApp.assignedShift.id,
-          latitude: jobApp.job.latitude,
-          longitude: jobApp.job.longitude,
-          isCheckInRequired: jobApp.assignedShift.checkInRequired ?? false,
-          isCheckOutRequired: jobApp.assignedShift.checkOutRequired ?? false,
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        await jobController.refreshJobs(); // Call the refresh function
       },
+      child: Obx(() {
+        if (jobController.isLoading.value) {
+          return Center(child: CircularProgressIndicator());
+        }
+        if (jobs.isEmpty) {
+          return Center(
+            child: Text('No jobs found', style: TextStyle(color: Colors.white)),
+          );
+        }
+        return ListView.separated(
+          itemCount: jobs.length,
+          separatorBuilder: (_, __) => SizedBox(height: AppSpacing.fifteenVertical),
+          itemBuilder: (context, index) {
+            final jobApp = jobController.filteredJobs[index];
+            final jobCard = jobs[index];
+            return JobCardWidget(
+              job: jobCard,
+              shiftId: jobApp.assignedShift.id,
+              latitude: jobApp.job.latitude,
+              longitude: jobApp.job.longitude,
+              isCheckInRequired: jobApp.assignedShift.checkInRequired ?? false,
+              isCheckOutRequired: jobApp.assignedShift.checkOutRequired ?? false,
+              jobId: jobApp.job.id,
+              contractorId: jobApp.job.contractor.id,
+              guardId: jobController.userController.userData.value!.id!,
+              date: jobApp.job.shifts.isNotEmpty ? jobApp.job.shifts[0].date : '',
+              time: jobApp.job.shifts.isNotEmpty
+                  ? '${jobApp.job.shifts[0].startTime.substring(0, 5)} - ${jobApp.job.shifts[0].endTime.substring(0, 5)}'
+                  : '',
+            );
+          },
+        );
+      }),
     );
   }
-
   String _mapStatus(String apiStatus) {
     switch (apiStatus.toLowerCase()) {
       case 'active':
@@ -156,8 +172,17 @@ class JobCardWidget extends StatelessWidget {
   final String longitude;
   final bool isCheckInRequired;
   final bool isCheckOutRequired;
+  final String guardId;
+  final String jobId;
+  final String contractorId;
+  final String date;
+  final String time;
 
-  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude, required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired});
+
+  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude,
+    required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired,
+    required this.guardId, required this.jobId, required this.contractorId, required this.date, required this.time
+  });
 
 
   Color _getCardColor() {
@@ -336,7 +361,16 @@ class JobCardWidget extends StatelessWidget {
 
                   } else if (job.buttonText == 'Share your review') {
                     Get.to(() =>
-                        SubmitReviewScreen()); // Add this screen if not yet created
+                        SubmitReviewScreen(
+                          jobTitle: job.title,
+                          guardName: job.guardName,
+                          jobDate: time,
+                          payPerHour: job.price,
+                          jobId: jobId,
+                          contractorId: contractorId,
+                          guardId: guardId,
+                          date: date,
+                        ));
                   }
                 },
                 child: Text(

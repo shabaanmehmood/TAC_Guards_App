@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:tac/controllers/user_controller.dart';
@@ -44,6 +45,22 @@ class JobController extends GetxController {
     }
   }
 
+  Future<void> refreshJobs() async {
+    isLoading.value = true;
+    try {
+      await fetchJobApplications(userController.userData.value!.id!);
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to refresh jobs",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Map filter label to API status value
   final Map<String, String> statusMap = {
     'Active': 'active',
@@ -51,6 +68,52 @@ class JobController extends GetxController {
     'Completed': 'completed',
     'Cancelled': 'cancelled',
   };
+
+  Future<Map<String, dynamic>> submitReview({
+    required String guardId,
+    required String jobId,
+    required String contractorId,
+    required int rating,
+    required String review,
+  }) async {
+    final url = Uri.parse('http://148.66.158.113:3006/api/v1/guardFeedback');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: jsonEncode({
+          "guardId": guardId,
+          "jobId": jobId,
+          "contractorId": contractorId,
+          "rating": rating,
+          "review": review,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          "status": true,
+          "message": "Review submitted successfully!",
+        };
+      } else {
+        final res = jsonDecode(response.body);
+        return {
+          "status": false,
+          "message": res["message"] ?? "Failed to submit review",
+        };
+      }
+    } catch (e) {
+      return {
+        "status": false,
+        "message": "An error occurred while submitting review",
+      };
+    }
+  }
+
 
   @override
   void onInit() {

@@ -93,6 +93,21 @@ class MyApIService {
     return response;
   }
 
+  Future<http.Response> googleLogin(String token) async {
+    var functionUrl = 'auth/google-Auth';
+    final response = await http.post(
+      Uri.parse(baseurl + functionUrl),
+      headers: {
+        "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: jsonEncode({
+        "token": token,
+      }),
+    );
+    return response;
+  }
+
   Future<http.Response> sendOtp(String email) async {
     var functionUrl = 'users/sendOtp';
     final response = await http.post(
@@ -672,7 +687,6 @@ class MyApIService {
     return response;
   }
 
-
   Future<http.Response> checkinGuard(String shiftId, String guardId, String latitude, String longitude) async {
     var functionUrl = 'shiftAttendance';
 
@@ -717,6 +731,26 @@ class MyApIService {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       debugPrint('Check-out response: $json');
+    } else {
+      debugPrint('Error: ${response.statusCode} - ${response.body}');
+    }
+    return response;
+  }
+
+  Future<http.Response> getAllContractorsList() async {
+    var functionUrl = 'contractors';
+
+    final response = await http.get(Uri.parse(baseurl + functionUrl),
+      headers: {
+        "Content-Type": "application/json",
+        'ngrok-skip-browser-warning': 'true',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      final dataList = json['data'];
+      debugPrint('Contractors list: $dataList');
     } else {
       debugPrint('Error: ${response.statusCode} - ${response.body}');
     }

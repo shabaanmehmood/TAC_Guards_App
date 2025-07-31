@@ -5,8 +5,19 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 
+import '../../../routes/app_routes.dart';
+
 class ReviewSubmittedScreen extends StatelessWidget {
-  const ReviewSubmittedScreen({Key? key}) : super(key: key);
+  final bool resultStatus;
+  final String responseMessage;
+  final String jobTitle;
+
+  const ReviewSubmittedScreen({
+    Key? key,
+    required this.resultStatus,
+    required this.responseMessage,
+    required this.jobTitle,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +31,7 @@ class ReviewSubmittedScreen extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Review Submitted',
+          resultStatus ? 'Review Submitted' : 'Submission Failed',
           style: AppTypography.kBold16.copyWith(color: AppColors.kWhite),
         ),
         centerTitle: true,
@@ -34,18 +45,18 @@ class ReviewSubmittedScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.15),
-                shape: BoxShape.circle,
+                color: resultStatus ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.15),
+                shape: resultStatus ? BoxShape.circle : BoxShape.rectangle,
               ),
               child: Icon(
-                Icons.check,
+                resultStatus ? Icons.check : Icons.error,
                 size: 48,
-                color: Colors.green,
+                color: resultStatus ? Colors.green : Colors.red,
               ),
             ),
             SizedBox(height: AppSpacing.twentyVertical),
             Text(
-              'Your review has been\nsuccessfully submitted!',
+              resultStatus ? 'Review Submitted Successfully' : responseMessage,
               textAlign: TextAlign.center,
               style: AppTypography.kBold18.copyWith(color: AppColors.kWhite),
             ),
@@ -63,7 +74,7 @@ class ReviewSubmittedScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Security Escort for Actor – Airport to Residence',
+                    jobTitle,
                     style: AppTypography.kBold14.copyWith(
                       color: AppColors.kWhite,
                     ),
@@ -83,7 +94,7 @@ class ReviewSubmittedScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // Navigate back to jobs screen
+                  Get.offAllNamed(AppRoutes.landing, arguments: {'selectedIndex': 2});
                 },
                 icon: Image.asset(
                   AppAssets.kBack,

@@ -4,47 +4,58 @@ import 'package:get/get.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
+
 import 'package:tac/modules/Guards/guards_view.dart';
-import 'package:tac/modules/Jobs/jobs_page.dart';
 import 'package:tac/modules/Jobs/myJobs_view.dart';
 import 'package:tac/modules/Messages/messages.dart';
 import 'package:tac/modules/account/account.dart';
-import 'package:tac/modules/account/components/Earning/earnings_screen.dart';
 import 'package:tac/modules/home/home_view.dart';
-import 'package:tac/modules/jobApplications/my_jobs_view.dart';
 
-import '../../controllers/user_controller.dart';
+import '../jobApplications/my_jobs_view.dart';
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key});
+  final int selectedIndex; // <-- Add this
+
+  const LandingPage({Key? key, this.selectedIndex = 0}) : super(key: key); // <-- Accept in constructor
 
   @override
   State<LandingPage> createState() => _LandingPageState();
 }
 
 class _LandingPageState extends State<LandingPage> {
+  late int _currentIndex;
+
   final List<Widget> _pages = [
     const HomeView(),
     const GuardsView(),
-    // const JobsView(),
     MyJobsView1(),
-    // EarningsScreen(),
     MessagesScreen(),
     const AccountScreen(),
-    // const ChatsScreen(),
-    // const CourseSchedule(),
-    // const MyProfileView(),
   ];
 
-  int _currentIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.selectedIndex; // <-- Set the initial index with argument!
+  }
+
+  @override
+  void didUpdateWidget(LandingPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Check if the selectedIndex has changed and update _currentIndex accordingly
+    if (widget.selectedIndex != oldWidget.selectedIndex) {
+      setState(() {
+        _currentIndex = widget.selectedIndex;
+      });
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    // bool isDarkMode(BuildContext context) =>
-    //     Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: AppColors.kDarkBlue,
-      extendBody: false,
       body: _pages[_currentIndex],
       bottomNavigationBar: SafeArea(
         child: Container(
@@ -63,7 +74,7 @@ class _LandingPageState extends State<LandingPage> {
                 fontWeight: FontWeight.bold,
               ),
               unselectedLabelStyle:
-                  const TextStyle(fontSize: 13, color: Colors.grey),
+              const TextStyle(fontSize: 13, color: Colors.grey),
               selectedFontSize: 14,
               unselectedFontSize: 13,
               unselectedItemColor: Colors.grey,
