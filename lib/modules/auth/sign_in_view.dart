@@ -8,6 +8,7 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/constants.dart';
+import 'package:tac/modules/account/components/logoutConstant.dart';
 import 'package:tac/modules/auth/forget_password.dart';
 import 'package:tac/routes/app_routes.dart';
 import 'package:flutter/material.dart';
@@ -32,9 +33,9 @@ class SignInViewController extends GetxController {
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  final String rememberEmailKey = 'rememberedEmail';
-  final String rememberPasswordKey = 'rememberedPassword';
-  final String loginTimeKey = 'loginTime';
+  final String rememberEmailKey = AppConstants.rememberEmailKey;
+  final String rememberPasswordKey = AppConstants.rememberPasswordKey;
+  final String loginTimeKey = AppConstants.loginTimeKey;
 
   void togglePasswordView() {
     passwordVisible.value = !passwordVisible.value;

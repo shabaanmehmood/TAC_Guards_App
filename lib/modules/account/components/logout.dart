@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
+import 'package:tac/modules/account/components/logoutConstant.dart';
 
 import '../../../controllers/user_controller.dart';
 import '../../../dataproviders/api_service.dart';
@@ -24,7 +25,12 @@ class LogoutController extends GetxController {
         userController.userData.value!.id!,
       );
       if (response.statusCode == 200) {
+          final prefs = await SharedPreferences.getInstance();
         debugPrint("data from logout API ${response.body}");
+           // Use the shared constants to remove the data
+        await prefs.remove(AppConstants.rememberEmailKey);
+        await prefs.remove(AppConstants.rememberPasswordKey);
+        await prefs.remove(AppConstants.loginTimeKey);
         // await clearLoginSession();
         Get.offAllNamed(AppRoutes.getSignInRoute());
         // Clear the distance cache when logging out
