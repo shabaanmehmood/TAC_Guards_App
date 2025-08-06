@@ -1,14 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:get/get_navigation/src/routes/transitions_type.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
+import 'package:tac/dataproviders/notification_services/notification_handler.dart';
+import 'package:tac/dataproviders/notification_services/notification_services.dart';
+import 'package:tac/firebase_options.dart';
 import 'package:tac/routes/app_routes.dart';
-
 import 'controllers/user_controller.dart';
 import 'data/data/constants/app_theme.dart';
 
@@ -32,18 +31,44 @@ import 'data/data/constants/app_theme.dart';
 //   }
 // }
 
+
+// ✅ Top-level background handler
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(); // required in background isolate
+  print("📩 Background message received: ${message.notification?.title}");
+}
+
+
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  
+  // ✅ Background handler registration MUST be BEFORE runApp()
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   SystemChrome.setSystemUIOverlayStyle(defaultOverlay);
   await SystemChrome.setPreferredOrientations(
     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
   );
+  
+  // ✅ Initialize Local Notifications
+  NotificationServices.requestNotificationPermission();
+  NotificationServices.localNotiInit();
+
+  // ✅ FCM Foreground & Terminated State
+  NotificationHandlerController.initializeFCMHandlers();
+  await NotificationHandlerController.handleTerminatedState();
+
   Get.put(UserController(), permanent: true);
   // final initialRoute = await getInitialRoute();
   // runApp(Main(initialRoute: initialRoute,));
   runApp(
     Main(
-      initialRoute: AppRoutes.onboarding,
+      initialRoute: AppRoutes.splashScreen,
     ),
   );
 }
@@ -75,7 +100,7 @@ class Main extends StatelessWidget {
         // darkTheme: AppTheme.darkTheme,
         // themeMode: getThemeMode(themeController.theme),
         // initialRoute: AppRoutes.getOnboardingRoute(),
-        initialRoute: AppRoutes.onboarding,
+        initialRoute: AppRoutes.splashScreen,
         getPages: AppRoutes.routes,
       ),
     );

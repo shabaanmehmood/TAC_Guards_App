@@ -25,24 +25,109 @@ import 'google_auth.dart';
 
 class SignInViewController extends GetxController {
   var passwordVisible = false.obs;
+  var rememberMe = false.obs;
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
+  final String rememberEmailKey = 'rememberedEmail';
+  final String rememberPasswordKey = 'rememberedPassword';
+  final String loginTimeKey = 'loginTime';
+
   void togglePasswordView() {
     passwordVisible.value = !passwordVisible.value;
   }
 
-  Future<void> saveLoginSession() async {
+  void toggleRememberMe(bool? value) {
+    rememberMe.value = value ?? false;
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    _checkAutoLogin();
+  }
+
+  @override
+  void onClose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.onClose();
+  }
+
+  Future<void> _checkAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final loginTimestamp = prefs.getInt(loginTimeKey);
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    if (loginTimestamp != null && (now  - loginTimestamp <= 8 * 60 * 60 * 1000)) {
+      final rememberedEmail = prefs.getString(rememberEmailKey);
+      final rememberedPassword = prefs.getString(rememberPasswordKey);
+
+      if (rememberedEmail != null && rememberedPassword != null) {
+        emailController.text = rememberedEmail;
+        passwordController.text = rememberedPassword;
+
+        await submitSignIn(Get.context!, autoLogin: true);
+      }
+    } else {
+      await prefs.remove(rememberEmailKey);
+      await prefs.remove(rememberPasswordKey);
+      await prefs.remove(loginTimeKey);
+
+      emailController.clear();
+      passwordController.clear();
+      rememberMe.value = false;
+      return;
+    }
+  }
+
+
+   Future<bool> checkAutoLoginAndRedirect() async {
+  final prefs = await SharedPreferences.getInstance();
+  final loginTimestamp = prefs.getInt(loginTimeKey);
+  final now = DateTime.now().millisecondsSinceEpoch;
+
+  if (loginTimestamp != null && (now - loginTimestamp <= 8 * 60 * 60 * 1000)) {
+    final rememberedEmail = prefs.getString(rememberEmailKey);
+    final rememberedPassword = prefs.getString(rememberPasswordKey);
+
+    if (rememberedEmail != null && rememberedPassword != null) {
+      emailController.text = rememberedEmail;
+      passwordController.text = rememberedPassword;
+
+      final response = await MyApIService().login(
+        rememberedEmail.trim(),
+        rememberedPassword.trim(),
+      );
+
+      if (response.statusCode == 200) {
+        await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
+        Get.offAllNamed(AppRoutes.getLandingPageRoute());
+        return true;
+      }
+    }
+  }
+
+  // Clear stale data
+  await prefs.remove(rememberEmailKey);
+  await prefs.remove(rememberPasswordKey);
+  await prefs.remove(loginTimeKey);
+
+  return false;
+}
+
+
+Future<void> saveLoginSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isLoggedIn', true);
     await prefs.setInt('loginTime', DateTime.now().millisecondsSinceEpoch);
   }
 
-  Future<void> submitSignIn(BuildContext context) async {
-    if (formKey.currentState!.validate()) {
+Future<void> submitSignIn(BuildContext context, {bool autoLogin = false}) async {
+    if (autoLogin || formKey.currentState!.validate()) {
       final apiService = MyApIService(); // create instance
       try{
         final response = await apiService.login(
@@ -51,39 +136,57 @@ class SignInViewController extends GetxController {
         );
 
         if (response.statusCode == 200) {
-          debugPrint("data from API ${response.body}");
+           if (rememberMe.value || autoLogin) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(rememberEmailKey, emailController.text.trim());
+            await prefs.setString(rememberPasswordKey, passwordController.text.trim());
+            await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
+          }
+
           Get.offAndToNamed(AppRoutes.getLandingPageRoute());
-          // await saveLoginSession();
+          // debugPrint("data from API ${response.body}");
+          // Get.offAndToNamed(AppRoutes.getLandingPageRoute());
+          // // await saveLoginSession();
         } else {
           debugPrint("data from API ${response.body}");
           debugPrint("data from API ${response.body}");
           final Map<String, dynamic> responseBody = jsonDecode(response.body);
           final String errorMessage = responseBody['message'] ?? 'Unknown error';
 
+    
+
+
           // Show dialog with one line call
-          await AdaptiveAlertDialogWidget.show(
-            context,
-            title: 'Login Failed',
-            content: errorMessage,
-            yesText: 'OK',
-            showNoButton: false,
-            onYes: () {
+          if (!autoLogin) {
+            await AdaptiveAlertDialogWidget.show(
+              context,
+              title: 'Login Failed',
+              content: errorMessage,
+              yesText: 'OK',
+              showNoButton: false,
+              onYes: () {
               // Optional: do something on OK pressed
             },
-          );
+            );
+          }
+        
           debugPrint('Error login failed: ${response.body}');
         }
       }
-      catch(e){
-        debugPrint('Error Network error: ${e.toString()}');
-        await AdaptiveAlertDialogWidget.show(
-          context,
-          title: 'Network Error',
-          content: e.toString(),
-          yesText: 'OK',
-          showNoButton: false,
-        );
+
+catch (e) {
+        if (!autoLogin) {
+           debugPrint('Error Network error: ${e.toString()}');
+          await AdaptiveAlertDialogWidget.show(
+            context,
+            title: 'Network Error',
+            content: e.toString(),
+            yesText: 'OK',
+            showNoButton: false,
+          );
+        }
       }
+     
     }
   }
 
@@ -194,18 +297,32 @@ class SignInView extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                       
+
                           Flexible(
-                            child: CheckboxListTile(
-                              value: false,
-                              onChanged: (value) {
-                                // Handle checkbox state change
-                              },
-                              contentPadding: EdgeInsets.zero,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              title: Text('Remember me', style: AppTypography.kLight14.copyWith(
-                                  color: AppColors.kWhite
-                              ),),
-                            ),
+                            child: 
+                          //  CheckboxListTile(
+                          //     value: false,
+                          //     onChanged: (value) {
+                          //       // Handle checkbox state change
+                          //     },
+                          //     contentPadding: EdgeInsets.zero,
+                          //     controlAffinity: ListTileControlAffinity.leading,
+                          //     title: Text('Remember me', style: AppTypography.kLight14.copyWith(
+                          //         color: AppColors.kWhite
+                          //     ),),
+                          //   ),
+                            Obx(() => CheckboxListTile(
+                                  value: controller.rememberMe.value,
+                                  onChanged: controller.toggleRememberMe,
+                                  contentPadding: EdgeInsets.zero,
+                                  controlAffinity: ListTileControlAffinity.leading,
+                                  title: Text(
+                                    'Remember me',
+                                    style: AppTypography.kLight14.copyWith(color: AppColors.kWhite),
+                                  ),
+                                )),
+
                           ),
                           Flexible(
                             child: TextButton(

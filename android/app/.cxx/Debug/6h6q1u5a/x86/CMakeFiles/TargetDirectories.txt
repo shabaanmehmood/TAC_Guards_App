@@ -1,0 +1,2 @@
+C:/Users/Hp/OneDrive/Desktop/New folder/tacGuard1/TAC_Guards_App/android/app/.cxx/Debug/6h6q1u5a/x86/CMakeFiles/edit_cache.dir
+C:/Users/Hp/OneDrive/Desktop/New folder/tacGuard1/TAC_Guards_App/android/app/.cxx/Debug/6h6q1u5a/x86/CMakeFiles/rebuild_cache.dir

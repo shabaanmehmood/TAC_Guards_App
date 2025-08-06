@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "255779318742",
+    "project_id": "tacguard-d07c7",
+    "storage_bucket": "tacguard-d07c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:255779318742:android:73de4d8c98143bcd4c1277",
+        "android_client_info": {
+          "package_name": "com.example.tac"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9x42796cI5tPVKveHvDeP5fANHTr8J6M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
