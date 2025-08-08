@@ -4,6 +4,7 @@
 // import 'dart:convert';
 //
 import 'package:tac/dataproviders/api_service.dart';
+import 'package:tac/modules/auth/sign_in_view.dart';
 import '../../controllers/user_controller.dart';
 import '../../models/getUserById_model.dart';
 import '../../models/userdata_model.dart';
@@ -93,6 +94,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class GoogleAuthService {
   MyApIService myApIService = MyApIService();
+  SignInViewController signInViewController = Get.find<SignInViewController>();
 
   // Use the singleton instance
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -138,7 +140,7 @@ class GoogleAuthService {
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
-      final response = await myApIService.googleLogin(googleAuth.idToken!);
+      final response = await myApIService.googleLogin(googleAuth.idToken!, signInViewController.fcmToken!);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonData = jsonDecode(response.body);
