@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:http/http.dart' as http;
+import 'package:tac/models/notification_model.dart';
 
 import '../controllers/user_controller.dart';
 import '../models/getUserById_model.dart';
@@ -1124,4 +1125,25 @@ Issue with filepath. Solve it:
     return await Geolocator.getCurrentPosition();
   }
   */
+
+  
+ Future<List<GuardNotification>> fetchNotifications(String guardId) async {
+    final uri = Uri.parse("${baseurl}notification/user/$guardId");
+// http://148.66.158.113:3006/api/v1/notification/user/16b7043b-9aab-4902-b2a7-b19cdac99b00
+    final response = await http.get(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final List<dynamic> dataList = jsonData['data'];
+      return dataList.map((item) => GuardNotification.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load notifications');
+    }
+  }
 }
