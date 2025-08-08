@@ -211,30 +211,38 @@ class NotificationScreen extends StatelessWidget {
                     // ),    ),
 
                     // Notification Icon with fallback
-Container(
-  padding: const EdgeInsets.all(8),
-  decoration: BoxDecoration(
-    color: Colors.blueAccent.withOpacity(0.2),
-    shape: BoxShape.circle,
-  ),
-  child: ClipOval(
-    child: Image.network(
-      item.image,
-      height: 30,
-      width: 30,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        // Fallback to asset icon if network image fails
-        return Image.asset(
-          'assets/logo.png',
-          height: 30,
-          width: 30,
-          fit: BoxFit.cover,
-        );
-      },
-    ),
-  ),
-),
+// Container(
+//   padding: const EdgeInsets.all(8),
+//   decoration: BoxDecoration(
+//     color: Colors.blueAccent.withOpacity(0.2),
+//     shape: BoxShape.circle,
+//   ),
+//   child: ClipOval(
+//     child: Image.network(
+//       item.image,
+//       height: 30,
+//       width: 30,
+//       fit: BoxFit.cover,
+//       errorBuilder: (context, error, stackTrace) {
+//         // Fallback to asset icon if network image fails
+//         return Image.asset(
+//           'assets/logo.png',
+//           height: 30,
+//           width: 30,
+//           fit: BoxFit.cover,
+//         );
+//       },
+//     ),
+//   ),
+// ),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Image.asset('assets/logo.png', height: 30, width: 30),
+                    ),
 
                   const SizedBox(width: 12),
                   // Notification Content
