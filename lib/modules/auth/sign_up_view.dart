@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tac/data/data/constants/constants.dart';
 import 'package:tac/modules/auth/set_password.dart';
+import 'package:tac/modules/auth/sign_in_view.dart';
 import 'package:tac/widhets/common%20widgets/buttons/TextFormFieldWidget.dart';
 
 import '../../controllers/user_controller.dart';
@@ -25,6 +26,7 @@ import '../../widhets/common widgets/buttons/primary_button.dart';
 import 'package:tac/dataproviders/api_service.dart';
 
 class SignUpViewController extends GetxController {
+  SignInViewController signInViewController = Get.put(SignInViewController());
   TextEditingController fullNameController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
@@ -91,6 +93,7 @@ class SignUpViewController extends GetxController {
           final loginRespone = await apiService.login(
             emailController.text.toString(),
             passwordController.text.toString(),
+            signInViewController.fcmToken!,
           );
           if (loginRespone.statusCode == 200) {
             // Force refresh user data to ensure we have the latest including image

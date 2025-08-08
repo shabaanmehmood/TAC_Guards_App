@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ffi';
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,7 @@ import '../../widhets/common widgets/buttons/primary_container.dart';
 import 'google_auth.dart';
 
 class SignInViewController extends GetxController {
+  String? fcmToken;
   var passwordVisible = false.obs;
   var rememberMe = false.obs;
 
@@ -49,6 +51,25 @@ class SignInViewController extends GetxController {
   void onInit() {
     super.onInit();
     _checkAutoLogin();
+    _initFCM();
+    _listenForTokenRefresh();
+  }
+
+  Future<void> _initFCM() async {
+    try {
+      fcmToken = await FirebaseMessaging.instance.getToken();
+      debugPrint('Initial FCM Token: $fcmToken');
+    } catch (e) {
+      debugPrint('Failed to get FCM Token: $e');
+    }
+  }
+
+  void _listenForTokenRefresh() {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+      debugPrint('Refreshed FCM Token: $newToken');
+      fcmToken = newToken;
+      // You may want to update your server/backend here if user is logged in
+    });
   }
 
   @override
@@ -71,7 +92,7 @@ class SignInViewController extends GetxController {
         emailController.text = rememberedEmail;
         passwordController.text = rememberedPassword;
 
-        await submitSignIn(Get.context!, autoLogin: true);
+        await submitSignIn(Get.context!, fcmToken, autoLogin: true);
       }
     } else {
       await prefs.remove(rememberEmailKey);
@@ -102,6 +123,7 @@ class SignInViewController extends GetxController {
       final response = await MyApIService().login(
         rememberedEmail.trim(),
         rememberedPassword.trim(),
+        fcmToken!,
       );
 
       if (response.statusCode == 200) {
@@ -127,13 +149,14 @@ Future<void> saveLoginSession() async {
     await prefs.setInt('loginTime', DateTime.now().millisecondsSinceEpoch);
   }
 
-Future<void> submitSignIn(BuildContext context, {bool autoLogin = false}) async {
+Future<void> submitSignIn(BuildContext context, String? fcmToken, {bool autoLogin = false}) async {
     if (autoLogin || formKey.currentState!.validate()) {
       final apiService = MyApIService(); // create instance
       try{
         final response = await apiService.login(
           emailController.text.toString(),
           passwordController.text.toString(),
+          fcmToken!,
         );
 
         if (response.statusCode == 200) {
@@ -342,7 +365,7 @@ class SignInView extends StatelessWidget {
                       PrimaryButton(
                         color: AppColors.kSkyBlue,
                         onTap: () async {
-                          await controller.submitSignIn(context);
+                          await controller.submitSignIn(context, controller.fcmToken);
                         },
                         text: 'Login',
                       ),

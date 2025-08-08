@@ -56,7 +56,7 @@ class MyApIService {
     return response;
   }
 
-  Future<http.Response> login(String email, String password) async {
+  Future<http.Response> login(String email, String password, String fcmToken) async {
     var functionUrl = 'auth/login';
     final response = await http.post(
       Uri.parse(baseurl + functionUrl),
@@ -67,6 +67,7 @@ class MyApIService {
       body: jsonEncode({ // Encode body as JSON string
         "email": email,
         "password": password,
+        "fcmToken": fcmToken,
       }),
     );
     if (response.statusCode == 200) {
@@ -94,7 +95,7 @@ class MyApIService {
     return response;
   }
 
-  Future<http.Response> googleLogin(String token) async {
+  Future<http.Response> googleLogin(String token, String fcmToken) async {
     var functionUrl = 'auth/google-Auth';
     final response = await http.post(
       Uri.parse(baseurl + functionUrl),
@@ -104,6 +105,7 @@ class MyApIService {
       },
       body: jsonEncode({
         "token": token,
+        "fcmToken": fcmToken,
       }),
     );
     return response;
