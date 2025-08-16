@@ -18,6 +18,7 @@ class MessagesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.kDarkestBlue,
       appBar: AppBar(
+         automaticallyImplyLeading: false, // Removes the back button
         backgroundColor: AppColors.kDarkestBlue,
         elevation: 0,
         title: Row(

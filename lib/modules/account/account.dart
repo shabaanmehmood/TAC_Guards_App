@@ -7,6 +7,7 @@ import 'package:tac/modules/account/components/logout.dart';
 import 'package:tac/modules/account/components/profile/profile_screen.dart';
 import 'package:tac/modules/account/help_support.dart';
 import 'package:tac/modules/account/components/reviews/reviews_screen.dart';
+import 'package:tac/modules/alerts/notification_view.dart';
 
 import '../../controllers/user_controller.dart';
 import '../../data/data/constants/app_assets.dart';
@@ -87,8 +88,13 @@ class AccountScreen extends StatelessWidget {
                 ),
                 Stack(
                   children: [
-                    const Icon(Icons.notifications_none,
-                        color: Colors.white, size: 24),
+                    GestureDetector(
+                      onTap: (){
+                         Get.to<void>(() => NotificationScreen());
+                      },
+                      child: const Icon(Icons.notifications_none,
+                          color: Colors.white, size: 24),
+                    ),
                     Positioned(
                       right: 0,
                       top: 0,

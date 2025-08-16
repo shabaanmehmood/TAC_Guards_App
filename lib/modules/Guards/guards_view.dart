@@ -342,7 +342,6 @@ class GuardsView extends StatelessWidget {
           ),
         );
       }
-
       return RefreshIndicator(
         color: AppColors.kSkyBlue,
         backgroundColor: AppColors.kDarkestBlue,
@@ -357,7 +356,9 @@ class GuardsView extends StatelessWidget {
               future: controller.jobDataToCardModel(jobData),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(
+                    color: AppColors.kDarkBlue,
+                  ));
                 } else if (snapshot.hasError) {
                   return Text(
                     'Error: ${snapshot.error}',
