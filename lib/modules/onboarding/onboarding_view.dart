@@ -121,28 +121,79 @@ import 'components/onboarding_card.dart';
 //   }
 // }
 
+// class OnboardingController extends GetxController {
+//   final PageController pageController = PageController();
+//   var currentIndex = 0.obs; // ✅ Make it reactive
+
+//   void onPageChanged(int index) {
+//     currentIndex.value = index; // ✅ Update the reactive state
+//   }
+
+//   // void onSkip() {
+//   //   Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+//   // }
+
+//    void onSkip() async{
+    
+//     final prefs = await SharedPreferences.getInstance();
+//     await prefs.setBool('isFirstTime', false);
+//     Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+//   }
+
+
+//   void onNextPage() {
+//     if (currentIndex.value == onboardingList.length - 1) {
+//       Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+//     } else {
+//       pageController.nextPage(
+//         duration: const Duration(milliseconds: 500),
+//         curve: Curves.ease,
+//       );
+//     }
+//   }
+
+//   // void onSkip() {
+//   //   if (currentIndex.value == onboardingList.length - 1) {
+//   //     Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+//   //   } else {
+//   //     Get.offAllNamed<dynamic>(AppRoutes.getWelcomeRoute());
+//   //   }
+//   // }
+
+//   @override
+//   void onClose() {
+//     pageController.dispose();
+//     super.onClose();
+//   }
+// }
+
+
+// onboarding_controller.dart
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/onboarding.dart';
+import '../../routes/app_routes.dart';
+
 class OnboardingController extends GetxController {
   final PageController pageController = PageController();
-  var currentIndex = 0.obs; // ✅ Make it reactive
+  var currentIndex = 0.obs;
 
   void onPageChanged(int index) {
-    currentIndex.value = index; // ✅ Update the reactive state
+    currentIndex.value = index;
   }
 
-  // void onSkip() {
-  //   Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
-  // }
-
-   void onSkip() async{
-    
+  void onSkip() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isFirstTime', false);
     Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
   }
 
-
-  void onNextPage() {
+  void onNextPage() async {
     if (currentIndex.value == onboardingList.length - 1) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isFirstTime', false);
       Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
     } else {
       pageController.nextPage(
@@ -151,14 +202,6 @@ class OnboardingController extends GetxController {
       );
     }
   }
-
-  // void onSkip() {
-  //   if (currentIndex.value == onboardingList.length - 1) {
-  //     Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
-  //   } else {
-  //     Get.offAllNamed<dynamic>(AppRoutes.getWelcomeRoute());
-  //   }
-  // }
 
   @override
   void onClose() {

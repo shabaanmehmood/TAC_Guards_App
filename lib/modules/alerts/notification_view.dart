@@ -143,7 +143,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tac/modules/alerts/notification_controller.dart';
-import 'package:intl/intl.dart'; 
+import 'package:intl/intl.dart'; // for time formatting
 
 class NotificationScreen extends StatelessWidget {
   final NotificationController controller = Get.put(NotificationController());

@@ -50,7 +50,7 @@ class SignInViewController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _checkAutoLogin();
+    // _checkAutoLogin();
     _initFCM();
     _listenForTokenRefresh();
   }
@@ -107,7 +107,8 @@ class SignInViewController extends GetxController {
   }
 
 
-   Future<bool> checkAutoLoginAndRedirect() async {
+// in SignInViewController class
+Future<bool> checkAutoLoginAndRedirect() async {
   final prefs = await SharedPreferences.getInstance();
   final loginTimestamp = prefs.getInt(loginTimeKey);
   final now = DateTime.now().millisecondsSinceEpoch;
@@ -117,24 +118,28 @@ class SignInViewController extends GetxController {
     final rememberedPassword = prefs.getString(rememberPasswordKey);
 
     if (rememberedEmail != null && rememberedPassword != null) {
-      emailController.text = rememberedEmail;
-      passwordController.text = rememberedPassword;
+      // Ensure FCM token is fetched before proceeding
+      if (fcmToken == null) {
+        await _initFCM();
+      }
 
-      final response = await MyApIService().login(
-        rememberedEmail.trim(),
-        rememberedPassword.trim(),
-        fcmToken!,
-      );
+      if (fcmToken != null) {
+        final response = await MyApIService().login(
+          rememberedEmail.trim(),
+          rememberedPassword.trim(),
+          fcmToken!, // Use a non-null fcmToken here
+        );
 
-      if (response.statusCode == 200) {
-        await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
-        Get.offAllNamed(AppRoutes.getLandingPageRoute());
-        return true;
+        if (response.statusCode == 200) {
+          await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
+          Get.offAllNamed(AppRoutes.getLandingPageRoute());
+          return true;
+        }
       }
     }
   }
 
-  // Clear stale data
+  // Clear stale data and return false
   await prefs.remove(rememberEmailKey);
   await prefs.remove(rememberPasswordKey);
   await prefs.remove(loginTimeKey);
