@@ -6,6 +6,7 @@ import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/models/jobApplications/jobApplications_model.dart';
 import 'package:tac/models/user_model.dart';
+import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/checkin/checkin_overlay.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
 import 'package:tac/modules/fiilters/sort_overlay.dart';
@@ -19,6 +20,9 @@ import '../newjob section/job_model.dart';
 class MyJobsView1 extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
   // final JobApplicationController jobController = Get.put(JobApplicationController());
+  final TextEditingController searchController = TextEditingController();
+  final GuardsViewController guardsController=  Get.put(GuardsViewController());
+
 
   MyJobsView1({super.key});
 
@@ -68,12 +72,15 @@ class MyJobsView1 extends StatelessWidget {
           ],
         ),
         SizedBox(height: AppSpacing.tenVertical),
-        SearchField(
-          isBorderBlue: true,
-          isIconColorBlue: true,
-          icon2: AppAssets.kSearch,
-          text: 'Search for security jobs...',
-        )
+           SearchField(
+            isBorderBlue: true,
+            isEnabled: false,
+            text: 'Search for Security Guards',
+            isIconColorBlue: false,
+            icon2: AppAssets.kSearch,
+            guardsController: guardsController, // Pass the found controller
+          ),  
+         
       ],
     );
   }

@@ -36,6 +36,7 @@ class _LandingPageState extends State<LandingPage> {
   @override
   void initState() {
     super.initState();
+    
     _currentIndex = widget.selectedIndex; // <-- Set the initial index with argument!
   }
 

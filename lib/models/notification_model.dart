@@ -3,7 +3,8 @@ class GuardNotification {
   final String id;
   final String title;
   final String body;
-  final String image;
+  // final String image;
+  final String? image; // Change this to be nullable
   final bool isRead;
   final String fcmToken;
   final DateTime createdAt;
@@ -12,7 +13,8 @@ class GuardNotification {
     required this.id,
     required this.title,
     required this.body,
-    required this.image,
+    this.image, // Remove 'required' here
+    // required this.image,
     required this.isRead,
     required this.fcmToken,
     required this.createdAt,
@@ -23,7 +25,8 @@ class GuardNotification {
       id: json['id'],
       title: json['title'],
       body: json['body'],
-      image: json['image'],
+      // image: json['image'],
+      image: json['image'], // It will now accept null
       isRead: json['isRead'],
       fcmToken: json['fcmToken'],
       createdAt: DateTime.parse(json['createdAt']),

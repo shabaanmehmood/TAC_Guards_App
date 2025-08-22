@@ -241,7 +241,11 @@ class NotificationScreen extends StatelessWidget {
                         color: Colors.blueAccent.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Image.asset('assets/logo.png', height: 30, width: 30),
+                      child: 
+                      // Image.asset('assets/logo.png', height: 30, width: 30),
+                       item.image != null && item.image!.isNotEmpty
+                        ? Image.network(item.image!, height: 30, width: 30)
+                        : Image.asset('assets/logo.png', height: 30, width: 30),
                     ),
 
                   const SizedBox(width: 12),

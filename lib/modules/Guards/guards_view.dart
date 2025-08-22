@@ -9,6 +9,7 @@ import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/constants.dart';
 import 'package:tac/modules/home/components/search_field.dart';
+import 'package:tac/modules/search/search_view.dart';
 import 'package:tac/widhets/common%20widgets/buttons/job_card.dart';
 
 import '../../controllers/user_controller.dart';
@@ -31,6 +32,9 @@ class GuardsViewController extends GetxController {
   final RxString searchQuery = ''.obs;
   final RxMap<String, double> cachedDistances = <String, double>{}.obs;
   final RxBool isFirstLoad = true.obs;
+
+   final TextEditingController searchController = TextEditingController();
+
 
   void clearDistanceCache() {
     cachedDistances.clear();
@@ -219,7 +223,15 @@ class GuardsViewController extends GetxController {
     }
     return location;
   }
+
+   void performSearch() {
+    searchQuery.value = searchController.text;
+    // Navigate to search view with current data
+    Get.to(() => SearchView(guardsController: this));
+  }
+
 }
+
 
 class GuardsView extends StatelessWidget {
   const GuardsView({super.key});
@@ -495,6 +507,7 @@ class GuardsView extends StatelessWidget {
 
 Widget _appBar(BuildContext context) {
   final userController = Get.find<UserController>();
+  final controller = Get.find<GuardsViewController>();
   return Column(
     children: [
       Row(
@@ -557,10 +570,15 @@ Widget _appBar(BuildContext context) {
         icon2: AppAssets.kSearch,
         text: 'Search for Security Guards',
         isEnabled: true,
-        controller: TextEditingController(),
+        controller: controller.searchController,
         onChanged: (value) {
           final controller = Get.find<GuardsViewController>();
           controller.searchQuery.value = value;
+        },
+        onSearchPressed: () {
+          // This will be called when search icon is pressed
+        final controller = Get.find<GuardsViewController>();
+          controller.performSearch();
         },
       ),
     ],

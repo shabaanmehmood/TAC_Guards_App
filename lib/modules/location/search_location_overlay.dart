@@ -4,6 +4,7 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/constants.dart';
+import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/widhets/buttons/buttons/buttons.dart';
 import 'package:tac/widhets/common%20widgets/buttons/TextFormFieldWidget.dart';
 
@@ -22,6 +23,7 @@ class SearchLocationOverlayController extends GetxController {
 
 void showSearchLocationBottomSheet(BuildContext context) {
   SearchLocationOverlayController controller = Get.put(SearchLocationOverlayController());
+  final GuardsViewController guardsController=  Get.put(GuardsViewController());
 
   showModalBottomSheet(
     context: context,
@@ -50,6 +52,8 @@ void showSearchLocationBottomSheet(BuildContext context) {
               isIconColorBlue: true,
               text: 'Search Location..',
               leadingIcon: AppAssets.kSearch,
+              guardsController: guardsController, // Pass the found controller
+   
             ),
             SizedBox(height: AppSpacing.tenVertical),
             Divider(

@@ -3,10 +3,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:tac/controllers/mapController.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/dataproviders/notification_services/notification_handler.dart';
 import 'package:tac/dataproviders/notification_services/notification_services.dart';
 import 'package:tac/firebase_options.dart';
+import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/routes/app_routes.dart';
 import 'controllers/user_controller.dart';
 import 'data/data/constants/app_theme.dart';
@@ -62,8 +64,9 @@ void main() async {
   // ✅ FCM Foreground & Terminated State
   NotificationHandlerController.initializeFCMHandlers();
   await NotificationHandlerController.handleTerminatedState();
-
   Get.put(UserController(), permanent: true);
+   Get.put(MapController(), permanent: true); // <-- Add this line here
+  // Get.put(GuardsViewController(),permanent: true); 
   // final initialRoute = await getInitialRoute();
   // runApp(Main(initialRoute: initialRoute,));
   runApp(

@@ -7,6 +7,7 @@ import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/constants.dart';
 import 'package:tac/models/getUserById_model.dart';
 import 'package:tac/models/userdata_model.dart';
+import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/alerts/notification_view.dart';
 import 'package:tac/modules/home/components/search_field.dart';
 import 'package:tac/modules/location/current_location.dart';
@@ -31,6 +32,8 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    Get.put(MapController());
+    Get.put(GuardsViewController());
     userController.getUserData();
   }
 
@@ -69,6 +72,7 @@ class _HomeViewState extends State<HomeView> {
 
 Widget _appBar(BuildContext context) {
   final UserController userController = Get.find<UserController>();
+  final GuardsViewController guardsController = Get.find<GuardsViewController>(); // Find the controller here
   return Padding(
     padding: EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
     child: SizedBox(
@@ -137,6 +141,7 @@ Widget _appBar(BuildContext context) {
             text: 'Search for Security Guards',
             isIconColorBlue: false,
             icon2: AppAssets.kSearch,
+            guardsController: guardsController, // Pass the found controller
           ),
         ],
       ),
