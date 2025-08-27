@@ -132,7 +132,8 @@ Future<bool> checkAutoLoginAndRedirect() async {
 
         if (response.statusCode == 200) {
           await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
-          Get.offAllNamed(AppRoutes.getLandingPageRoute());
+          // Get.offAllNamed(AppRoutes.getLandingPageRoute());
+           Get.offAllNamed(AppRoutes.getLandingPageRoute());
           return true;
         }
       }
@@ -172,7 +173,8 @@ Future<void> submitSignIn(BuildContext context, String? fcmToken, {bool autoLogi
             await prefs.setInt(loginTimeKey, DateTime.now().millisecondsSinceEpoch);
           }
 
-          Get.offAndToNamed(AppRoutes.getLandingPageRoute());
+          // Get.offAndToNamed(AppRoutes.getLandingPageRoute());
+           Get.offAllNamed(AppRoutes.getLandingPageRoute());
           // debugPrint("data from API ${response.body}");
           // Get.offAndToNamed(AppRoutes.getLandingPageRoute());
           // // await saveLoginSession();
@@ -181,9 +183,6 @@ Future<void> submitSignIn(BuildContext context, String? fcmToken, {bool autoLogi
           debugPrint("data from API ${response.body}");
           final Map<String, dynamic> responseBody = jsonDecode(response.body);
           final String errorMessage = responseBody['message'] ?? 'Unknown error';
-
-    
-
 
           // Show dialog with one line call
           if (!autoLogin) {
@@ -203,7 +202,7 @@ Future<void> submitSignIn(BuildContext context, String? fcmToken, {bool autoLogi
         }
       }
 
-catch (e) {
+       catch (e) {
         if (!autoLogin) {
            debugPrint('Error Network error: ${e.toString()}');
           await AdaptiveAlertDialogWidget.show(
@@ -252,13 +251,13 @@ class SignInView extends StatelessWidget {
                     children: [
                       Text(
                         "Login",
-                        style: AppTypography.kBold24.copyWith(
+                        style: AppTypography.customkBold24.copyWith(
                           color: AppColors.kWhite
                         )
                       ),
                       Text(
                         "Welcome Back!",
-                        style: AppTypography.kLight14.copyWith(
+                        style: AppTypography.customkLight14.copyWith(
                           color: Colors.grey
                         )
                       ),
@@ -348,7 +347,7 @@ class SignInView extends StatelessWidget {
                                   controlAffinity: ListTileControlAffinity.leading,
                                   title: Text(
                                     'Remember me',
-                                    style: AppTypography.kLight14.copyWith(color: AppColors.kWhite),
+                                    style: AppTypography.customkLight14.copyWith(color: AppColors.kWhite),
                                   ),
                                 )),
 
@@ -360,7 +359,7 @@ class SignInView extends StatelessWidget {
                                 },
                                 child: Text(
                                   'Forget Password',
-                                  style: AppTypography.kBold16.copyWith(
+                                  style: AppTypography.customkBold16.copyWith(
                                       color: AppColors.kSkyBlue
                                   ),)),
                           ),
@@ -378,7 +377,7 @@ class SignInView extends StatelessWidget {
                       Center(
                         child: Text(
                           'OR',
-                          style: AppTypography.kBold16.copyWith(
+                          style: AppTypography.customkBold16.copyWith(
                             color: AppColors.kSkyBlue,
                           ),
                         ),
@@ -441,7 +440,7 @@ class SignInView extends StatelessWidget {
                             children: [
                               Text(
                                 'Don\'t have an account?',
-                                style: AppTypography.kBold16.copyWith(
+                                style: AppTypography.customkBold16.copyWith(
                                     color: Colors.grey
                                 ),
                               ),
@@ -460,7 +459,7 @@ class SignInView extends StatelessWidget {
                           ),
                           Text(
                             'Powered by TAC Solutions',
-                        style: AppTypography.kLight14.copyWith(
+                        style: AppTypography.customkLight14.copyWith(
                             color: Colors.grey
                         ),
                       ),

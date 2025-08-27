@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AppTypography {
+
+  
+  static double get screenWidth => Get.width;
   // Light.
   static TextStyle kLight14 = TextStyle(
     fontWeight: FontWeight.w400,
@@ -59,4 +63,38 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     fontSize: 32 ,
   );
+
+    // custom 
+   static TextStyle get customkLight14 {
+    // Calculate a responsive font size
+    // For example, 3.5% of the screen width
+    final double responsiveFontSize = screenWidth * 0.035; 
+
+    return TextStyle(
+      fontSize: responsiveFontSize,
+      fontWeight: FontWeight.w300,
+      // Add other style properties here
+    );
+  }
+
+  // Define other responsive text styles
+  static TextStyle get customkBold24 {
+    final double responsiveFontSize = screenWidth * 0.06;
+    return TextStyle(
+      fontSize: responsiveFontSize,
+      fontWeight: FontWeight.bold,
+    );
+  }
+
+   static TextStyle get customkBold16 {
+    // You can adjust this factor (0.04) to change the scaling.
+    // A factor of 0.04 means the font size will be 4% of the screen width.
+    final double responsiveFontSize = screenWidth * 0.04;
+
+    return TextStyle(
+      fontSize: responsiveFontSize,
+      fontWeight: FontWeight.bold,
+      // Add other style properties here if needed
+    );
+  }
 }

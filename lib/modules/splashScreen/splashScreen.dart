@@ -43,13 +43,15 @@ class _SplashScreenState extends State<SplashScreen>
      bool isFirstTime = prefs.getBool('isFirstTime') ?? true;
 
       if (isFirstTime) {
-        Get.to(() => OnboardingView());
+        // Get.to(() => OnboardingView());
+        Get.offAll(() => OnboardingView());
       } else {
         final signInController = Get.put(SignInViewController(), permanent: true);
         bool isLoggedIn = await signInController.checkAutoLoginAndRedirect();
-        Get.back();
+      
         if (!isLoggedIn) {
-          Get.toNamed(AppRoutes.getSignInRoute());
+           // Use offAll to remove splash from navigation stack
+            Get.offAllNamed(AppRoutes.getSignInRoute());
         }
       }
 
