@@ -1,15 +1,18 @@
+// transaction.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:tac/data/data/constants/app_typography.dart';
-import 'package:tac/data/data/constants/app_colors.dart';
-import 'package:tac/data/data/constants/app_spacing.dart';
-import 'earning_model.dart';
-import 'package:tac/data/data/constants/app_assets.dart';
+
+import '../../../../data/data/constants/app_assets.dart';
+import '../../../../data/data/constants/app_colors.dart';
+import '../../../../data/data/constants/app_spacing.dart';
+import '../../../../data/data/constants/app_typography.dart';
+import '../../../../models/earning_model.dart';
 
 class TransactionDetailsScreen extends StatelessWidget {
-  final EarningModel job;
+  final Payment payment;
 
-  const TransactionDetailsScreen({Key? key, required this.job})
+  const TransactionDetailsScreen({Key? key, required this.payment})
       : super(key: key);
 
   @override
@@ -20,20 +23,16 @@ class TransactionDetailsScreen extends StatelessWidget {
         backgroundColor: AppColors.kDarkestBlue,
         elevation: 0,
         leading: IconButton(
-          icon: Image.asset(
-            AppAssets
-                .kBack, // This should be the path to your asset (e.g., 'assets/icons/abn.png')
-            color: AppColors.kWhite, // Optional: tint the image
-            height: 30, // Adjust size as needed
-            width: 30,
-          ),
+          icon: Image.asset(AppAssets.kBack,
+              color: AppColors.kWhite, height: 30, width: 30),
           onPressed: () => Get.back(),
         ),
         title: Text('Transaction Details',
             style: AppTypography.kBold20.copyWith(color: AppColors.kWhite)),
       ),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
+        padding:
+        EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -47,47 +46,50 @@ class TransactionDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Residential Security Guard',
-                      style: AppTypography.kBold18
-                          .copyWith(color: AppColors.kWhite)),
-                  SizedBox(height: AppSpacing.fiveVertical),
-                  Text('March 15, 2024',
-                      style: AppTypography.kLight14
-                          .copyWith(color: AppColors.kgrey)),
-                  SizedBox(height: AppSpacing.tenVertical),
+                  const SizedBox(height: 12),
+                  Text('Bank: ${payment.bankName}',
+                      style: AppTypography.kLight14.copyWith(color: AppColors.kgrey)),
+                  Text('Account: ${payment.accountNumber}',
+                      style: AppTypography.kLight14.copyWith(color: AppColors.kgrey)),
+                  Text('Reference: ${payment.reference}',
+                      style: AppTypography.kLight14.copyWith(color: AppColors.kgrey)),
+                  const SizedBox(height: 6),
                   GestureDetector(
                     onTap: () => Get.toNamed('/jobDetails'),
-                    child: Text(
-                      'Job Details',
-                      style: AppTypography.kBold14.copyWith(
-                          color: AppColors.kPrimary,
-                          decoration: TextDecoration.underline),
-                    ),
+                    child: Text('Job Details',
+                        style: AppTypography.kBold14.copyWith(
+                            color: AppColors.kPrimary,
+                            decoration: TextDecoration.underline)),
                   ),
-                  SizedBox(height: AppSpacing.tenVertical),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Text('#236589685955',
+                      Text('#${payment.id}',
                           style: AppTypography.kLight14
                               .copyWith(color: AppColors.kgrey)),
                       const Spacer(),
-                      const Icon(Icons.copy, color: AppColors.kWhite, size: 16)
+                      GestureDetector(
+                          child: const Icon(Icons.copy, color: AppColors.kWhite, size: 16),
+                          onTap: () => Clipboard.setData(ClipboardData(text: payment.id)).then((_) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text(
+                                  'Payment ID copied to clipboard')),
+                            );
+                          }
+                          )
+                      )
                     ],
                   ),
-                  SizedBox(height: AppSpacing.tenVertical),
-                  Text('\$2,450.00',
+                  const SizedBox(height: 12),
+                  Text('\$${double.parse(payment.amount).toStringAsFixed(2)}',
                       style: AppTypography.kBold24
                           .copyWith(color: AppColors.kPrimary)),
-                  SizedBox(height: AppSpacing.fiveVertical),
-                  Text('82 hours @ \$30/hr',
-                      style: AppTypography.kLight14
-                          .copyWith(color: AppColors.kgrey)),
                 ],
               ),
             ),
             Text('Screenshot',
                 style: AppTypography.kBold16.copyWith(color: AppColors.kWhite)),
-            SizedBox(height: AppSpacing.tenVertical),
+            const SizedBox(height: 10),
             Container(
               height: Get.height * 0.25,
               decoration: BoxDecoration(
@@ -97,10 +99,7 @@ class TransactionDetailsScreen extends StatelessWidget {
               child: Center(
                 child: Padding(
                   padding: EdgeInsets.all(AppSpacing.tenHorizontal),
-                  child: Image.asset(
-                    'assets/apple.png',
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset('assets/apple.png', fit: BoxFit.contain),
                 ),
               ),
             ),
@@ -108,23 +107,23 @@ class TransactionDetailsScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Get.back();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kPrimary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: AppSpacing.fifteenVertical),
+                  padding:
+                  EdgeInsets.symmetric(vertical: AppSpacing.fifteenVertical),
                 ),
-                child: Text(
-                  'Save Screenshot',
-                  style:
-                      AppTypography.kBold16.copyWith(color: AppColors.kWhite),
-                ),
+                child: Text('Close',
+                    style:
+                    AppTypography.kBold16.copyWith(color: AppColors.kWhite)),
               ),
             ),
-            SizedBox(height: AppSpacing.twentyVertical),
+            const SizedBox(height: 20),
           ],
         ),
       ),

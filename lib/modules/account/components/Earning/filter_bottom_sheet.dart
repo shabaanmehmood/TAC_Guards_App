@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:tac/data/data/constants/app_assets.dart';
-import 'package:tac/data/data/constants/app_colors.dart';
-import 'package:tac/data/data/constants/app_spacing.dart';
-import 'package:tac/data/data/constants/app_typography.dart';
-import 'package:tac/modules/account/components/Earning/earnings_controller.dart';
+
+import '../../../../data/data/constants/app_assets.dart';
+import '../../../../data/data/constants/app_colors.dart';
+import '../../../../data/data/constants/app_spacing.dart';
+import '../../../../data/data/constants/app_typography.dart';
+import 'earnings_controller.dart';
 
 class EarningsFilterOverlay extends StatefulWidget {
   const EarningsFilterOverlay({super.key});
