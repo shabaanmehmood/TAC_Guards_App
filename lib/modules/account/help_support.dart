@@ -74,7 +74,8 @@ class HelpSupportScreen extends StatelessWidget {
             title: "Email Us",
             subtitle: "Contact@tacsolution.com",
             onTap: () {
-              // Navigate to Email page or trigger email intent
+  //               final UserController userController = Get.put(UserController());
+  // userController.userData.value?.email ?? "-"
             },
           ),
         ],

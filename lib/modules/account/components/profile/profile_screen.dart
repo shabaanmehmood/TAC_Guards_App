@@ -22,6 +22,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
 
   final UserController userController = Get.put(UserController());
+  
 
   @override
   void initState() {

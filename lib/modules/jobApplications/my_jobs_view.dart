@@ -54,12 +54,26 @@ class MyJobsView1 extends StatelessWidget {
       children: [
         Row(
           children: [
-            Image.asset(
-              AppAssets.kTacHomeScreenLogo,
-              height: Get.height * 0.07,
-              width: Get.width * 0.25,
-              fit: BoxFit.contain,
-            ),
+            // Image.asset(
+            //   AppAssets.kTacHomeScreenLogo,
+            //   height: Get.height * 0.07,
+            //   width: Get.width * 0.25,
+            //   fit: BoxFit.contain,
+            // ),
+            Row(
+                children: [
+                  Image.asset(
+                     AppAssets.kTacHomeScreenLogo,
+                    height: Get.height * 0.045,
+                    // width: Get.width * 0.18,
+                    fit: BoxFit.contain,
+                  ),
+                  Text(
+                    'My Jobs',
+                    style: AppTypography.kBold16.copyWith(color: AppColors.kWhite),
+                  ),
+                ],
+              ), 
             const Spacer(),
             ClipRRect(
               borderRadius: BorderRadius.circular(10),

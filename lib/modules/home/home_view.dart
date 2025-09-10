@@ -82,16 +82,31 @@ Widget _appBar(BuildContext context) {
         children: [
           Row(
             children: [
-              Builder(
-                builder: (BuildContext context) {
-                  return Image.asset(
-                    AppAssets.kTacHomeScreenLogo,
-                    height: Get.height * 0.07,
-                    width: Get.width * 0.25,
+               Row(
+                children: [
+                  Image.asset(
+                     AppAssets.kTacHomeScreenLogo,
+                    height: Get.height * 0.045,
+                    // width: Get.width * 0.18,
                     fit: BoxFit.contain,
-                  );
-                },
+                  ),
+                  SizedBox(width: 4,),
+                  Text(
+                    'Home',
+                    style: AppTypography.kBold16.copyWith(color: AppColors.kWhite),
+                  ),
+                ],
               ),
+              // Builder(
+              //   builder: (BuildContext context) {
+              //     return Image.asset(
+              //       AppAssets.kTacHomeScreenLogo,
+              //       height: Get.height * 0.07,
+              //       width: Get.width * 0.25,
+              //       fit: BoxFit.contain,
+              //     );
+              //   },
+              // ),
               const Spacer(),
               Stack(
                 children: [
