@@ -797,4 +797,30 @@ class MyApIService {
       throw Exception('Failed to load notifications');
     }
   }
+
+   Future<void> markAllNotificationsAsRead(String userId) async {
+    final uri = Uri.parse("${baseurl}notification/user/$userId/read-all");
+
+    try {
+      final response = await http.patch(
+        uri,
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      );
+      
+      print('Mark all read response status code: ${response.statusCode}');
+      print('Mark all read response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        print("All notifications marked as read successfully.");
+      } else {
+        throw Exception('Failed to mark notifications as read: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error marking notifications as read: $e');
+      throw Exception('Network error: Could not mark all as read.');
+    }
+  }
 }

@@ -139,14 +139,157 @@
 
 
 
+// // views/notification_screen.dart
+// import 'package:flutter/material.dart';
+// import 'package:get/get.dart';
+// import 'package:tac/modules/alerts/notification_controller.dart';
+// import 'package:intl/intl.dart'; // for time formatting
+
+// class NotificationScreen extends StatelessWidget {
+//   final NotificationController controller = Get.put(NotificationController());
+//   @override
+//   Widget build(BuildContext context) {
+//     controller.loadNotifications();
+
+//     return Scaffold(
+//       backgroundColor: const Color(0xFF0A192F),
+//       appBar: AppBar(
+//         backgroundColor: const Color(0xFF0A192F),
+//         elevation: 0,
+//         leading: IconButton(
+//           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+//           onPressed: () => Get.back(),
+//         ),
+//         title: const Text("Notifications",
+//             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+//         actions: [
+//           TextButton(
+//             onPressed: () {
+//               controller.notifications.clear();
+//             },
+//             child: const Text(
+//               "Mark all read",
+//               style: TextStyle(color: Color(0xFF4A90E2), fontWeight: FontWeight.bold),
+//             ),
+//           ),
+//         ],
+//       ),
+//       body: Obx(() {
+//         if (controller.isLoading.value) {
+//           return const Center(child: CircularProgressIndicator());
+//         }
+//         if (controller.notifications.isEmpty) {
+//           return const Center(child: Text("No notifications", style: TextStyle(color: Colors.white)));
+//         }
+
+//         return ListView.separated(
+//           padding: const EdgeInsets.all(16),
+//           itemCount: controller.notifications.length,
+//           separatorBuilder: (_, __) => const SizedBox(height: 10),
+//           itemBuilder: (context, index) {
+//             final item = controller.notifications[index];
+//             return Container(
+//               decoration: BoxDecoration(
+//                 color: const Color(0xFF112240),
+//                 borderRadius: BorderRadius.circular(10),
+//               ),
+//               padding: const EdgeInsets.all(12),
+//               child: Row(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   // Notification Image
+//                     //   ClipRRect(
+//                     //   borderRadius: BorderRadius.circular(25),
+//                     //   child: Image.network(
+//                     //   item.image,
+//                     //   height: 40,
+//                     //   width: 40,
+//                     //   fit: BoxFit.cover,
+//                     //   errorBuilder: (context, error, stackTrace) {
+//                     //     return const Icon(Icons.image_not_supported, color: Colors.grey, size: 40);
+//                     //   },
+//                     // ),    ),
+
+//                     // Notification Icon with fallback
+// // Container(
+// //   padding: const EdgeInsets.all(8),
+// //   decoration: BoxDecoration(
+// //     color: Colors.blueAccent.withOpacity(0.2),
+// //     shape: BoxShape.circle,
+// //   ),
+// //   child: ClipOval(
+// //     child: Image.network(
+// //       item.image,
+// //       height: 30,
+// //       width: 30,
+// //       fit: BoxFit.cover,
+// //       errorBuilder: (context, error, stackTrace) {
+// //         // Fallback to asset icon if network image fails
+// //         return Image.asset(
+// //           'assets/logo.png',
+// //           height: 30,
+// //           width: 30,
+// //           fit: BoxFit.cover,
+// //         );
+// //       },
+// //     ),
+// //   ),
+// // ),
+//                     Container(
+//                       padding: const EdgeInsets.all(8),
+//                       decoration: BoxDecoration(
+//                         color: Colors.blueAccent.withOpacity(0.2),
+//                         shape: BoxShape.circle,
+//                       ),
+//                       child: 
+//                       // Image.asset('assets/logo.png', height: 30, width: 30),
+//                        item.image != null && item.image!.isNotEmpty
+//                         ? Image.network(item.image!, height: 30, width: 30)
+//                         : Image.asset('assets/logo.png', height: 30, width: 30),
+//                     ),
+
+//                   const SizedBox(width: 12),
+//                   // Notification Content
+//                   Expanded(
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Text(item.title,
+//                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+//                         const SizedBox(height: 5),
+//                         Text(item.body,
+//                             style: const TextStyle(fontSize: 14, color: Colors.grey),
+//                             maxLines: 2,
+//                             overflow: TextOverflow.ellipsis),
+//                       ],
+//                     ),
+//                   ),
+//                   // Time
+//                   Text(
+//                     DateFormat.Hm().format(item.createdAt),
+//                     style: const TextStyle(fontSize: 12, color: Colors.grey),
+//                   ),
+//                 ],
+//               ),
+//             );
+//           },
+//         );
+//       }),
+//     );
+//   }
+// }
+
+
+
 // views/notification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tac/modules/alerts/notification_controller.dart';
-import 'package:intl/intl.dart'; // for time formatting
+import 'package:intl/intl.dart';
 
 class NotificationScreen extends StatelessWidget {
   final NotificationController controller = Get.put(NotificationController());
+
   @override
   Widget build(BuildContext context) {
     controller.loadNotifications();
@@ -160,12 +303,15 @@ class NotificationScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Get.back(),
         ),
-        title: const Text("Notifications",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text(
+          "Notifications",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: () {
-              controller.notifications.clear();
+              // Call the new method to mark all as read
+              controller.markAllRead();
             },
             child: const Text(
               "Mark all read",
@@ -197,74 +343,35 @@ class NotificationScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Notification Image
-                    //   ClipRRect(
-                    //   borderRadius: BorderRadius.circular(25),
-                    //   child: Image.network(
-                    //   item.image,
-                    //   height: 40,
-                    //   width: 40,
-                    //   fit: BoxFit.cover,
-                    //   errorBuilder: (context, error, stackTrace) {
-                    //     return const Icon(Icons.image_not_supported, color: Colors.grey, size: 40);
-                    //   },
-                    // ),    ),
-
-                    // Notification Icon with fallback
-// Container(
-//   padding: const EdgeInsets.all(8),
-//   decoration: BoxDecoration(
-//     color: Colors.blueAccent.withOpacity(0.2),
-//     shape: BoxShape.circle,
-//   ),
-//   child: ClipOval(
-//     child: Image.network(
-//       item.image,
-//       height: 30,
-//       width: 30,
-//       fit: BoxFit.cover,
-//       errorBuilder: (context, error, stackTrace) {
-//         // Fallback to asset icon if network image fails
-//         return Image.asset(
-//           'assets/logo.png',
-//           height: 30,
-//           width: 30,
-//           fit: BoxFit.cover,
-//         );
-//       },
-//     ),
-//   ),
-// ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: 
-                      // Image.asset('assets/logo.png', height: 30, width: 30),
-                       item.image != null && item.image!.isNotEmpty
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: item.image != null && item.image!.isNotEmpty
                         ? Image.network(item.image!, height: 30, width: 30)
                         : Image.asset('assets/logo.png', height: 30, width: 30),
-                    ),
-
+                  ),
                   const SizedBox(width: 12),
-                  // Notification Content
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.title,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text(
+                          item.title,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
                         const SizedBox(height: 5),
-                        Text(item.body,
-                            style: const TextStyle(fontSize: 14, color: Colors.grey),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          item.body,
+                          style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
-                  // Time
                   Text(
                     DateFormat.Hm().format(item.createdAt),
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
