@@ -12,10 +12,10 @@ class CheckInController extends GetxController {
     isChecked.value = value ?? false;
   }
 
-  Future<void> checkIn(String shiftId, String guardId, String latitude, String longitude) async {
+  Future<void> checkIn(String shiftId, String guardId, String latitude, String longitude, String selfieBase64) async {
     isLoading.value = true;
     try {
-      final response = await apiService.checkinGuard(shiftId, guardId, latitude, longitude);
+      final response = await apiService.checkinGuard(shiftId, guardId, latitude, longitude, selfieBase64);
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Show a snackbar/toast or navigate as success
         Get.back();
@@ -46,10 +46,10 @@ class CheckInController extends GetxController {
     }
   }
 
-  Future<void> checkOut(String shiftId, String guardId, String latitude, String longitude) async {
+  Future<void> checkOut(String shiftId, String guardId, String latitude, String longitude, String selfieBase64) async {
     isLoading.value = true;
     try {
-      final response = await apiService.checkOutGuard(shiftId, guardId, latitude, longitude);
+      final response = await apiService.checkOutGuard(shiftId, guardId, latitude, longitude, selfieBase64);
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Show a snackbar/toast or navigate as success
         Get.back();

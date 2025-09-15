@@ -6,6 +6,7 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/checkin/jobcheckin/job_checkin_screen.dart';
+import 'package:tac/widhets/common%20overlays/uploadFile_overlay.dart';
 import 'package:tac/widhets/common%20widgets/buttons/job_card.dart';
 import 'package:tac/widhets/common%20widgets/buttons/myJob_card.dart';
 import '../newjob section/job_model.dart';
@@ -21,6 +22,8 @@ class CheckInPage extends StatelessWidget {
   final bool isCheckOutRequired;
   final CheckInController controller = Get.put(CheckInController());
   final UserController userController = Get.find<UserController>();
+  final UploadFileController uploadFileController = Get.put(UploadFileController());
+
 
   CheckInPage({required this.job, required this.shiftId, required this.latitude, required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired});
 
@@ -153,18 +156,29 @@ class CheckInPage extends StatelessWidget {
                         ),
                         padding: EdgeInsets.symmetric(vertical: 20),
                       ),
-                      onPressed: () {
-                        if (controller.isChecked.value) {
-                         if(isCheckInRequired == true && isCheckOutRequired == false) {
-                           controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude);
-                         }
-                         else if (isCheckOutRequired == true && isCheckInRequired == false) {
-                           controller.checkOut(shiftId, userController.userData.value!.id!, latitude, longitude);
-                         }
-                        } else {
+                      onPressed: () async {
+                        String? selfieBase64 = await uploadFileController.showUploadFileBottomSheet(context, returnBase64: true, showPickFileOption: false, showPickGalleryOption: false);
+                        if (selfieBase64 != null){
+                          if (controller.isChecked.value) {
+                            if(isCheckInRequired == true && isCheckOutRequired == false) {
+                              controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude, selfieBase64);
+                            }
+                            else if (isCheckOutRequired == true && isCheckInRequired == false) {
+                              controller.checkOut(shiftId, userController.userData.value!.id!, latitude, longitude, selfieBase64);
+                            }
+                          } else {
+                            Get.snackbar(
+                              "Acknowledgement Required",
+                              "Please check the box to confirm.",
+                              backgroundColor: Colors.redAccent,
+                              colorText: Colors.white,
+                            );
+                          }
+                        }
+                        else {
                           Get.snackbar(
-                            "Acknowledgement Required",
-                            "Please check the box to confirm.",
+                            "Picture Required",
+                            "Please upload a selfie to confirm your check-in/out.",
                             backgroundColor: Colors.redAccent,
                             colorText: Colors.white,
                           );

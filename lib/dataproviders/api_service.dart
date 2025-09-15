@@ -689,7 +689,7 @@ class MyApIService {
     return response;
   }
 
-  Future<http.Response> checkinGuard(String shiftId, String guardId, String latitude, String longitude) async {
+  Future<http.Response> checkinGuard(String shiftId, String guardId, String latitude, String longitude, String image) async {
     var functionUrl = 'shiftAttendance';
 
     final response = await http.post(Uri.parse(baseurl + functionUrl),
@@ -702,6 +702,7 @@ class MyApIService {
         "guardId": guardId,
         "latitude": latitude,
         "longitude": longitude,
+        'image': image,
       }),
     );
 
@@ -714,7 +715,7 @@ class MyApIService {
     return response;
   }
 
-  Future<http.Response> checkOutGuard(String shiftId, String guardId, String latitude, String longitude) async {
+  Future<http.Response> checkOutGuard(String shiftId, String guardId, String latitude, String longitude, String image) async {
     var functionUrl = 'shiftAttendance/checkout';
 
     final response = await http.post(Uri.parse(baseurl + functionUrl),
@@ -727,6 +728,7 @@ class MyApIService {
         "guardId": guardId,
         "latitude": latitude,
         "longitude": longitude,
+        'image': image,
       }),
     );
 

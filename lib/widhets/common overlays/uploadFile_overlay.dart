@@ -419,7 +419,7 @@ class UploadFileController extends GetxController {
   }
 
   /// Show bottom sheet to pick image and return base64 or path
-  Future<String?> showUploadFileBottomSheet(BuildContext context, {bool returnBase64 = false, bool showPickFileOption = true}) async {
+  Future<String?> showUploadFileBottomSheet(BuildContext context, {bool returnBase64 = false, bool showPickFileOption = true, bool showPickGalleryOption = true}) async {
     final UploadFileController controller = Get.put(UploadFileController());
 
     return await showModalBottomSheet<String>(
@@ -462,11 +462,14 @@ class UploadFileController extends GetxController {
                 ],
               ),
               SizedBox(height: AppSpacing.tenVertical),
-              // Upload from Gallery option
-              _buildUploadOption("Upload from Gallery", () async {
-                final result = await controller.pickImageFromGallery(returnBase64: returnBase64);
-                Navigator.of(context).pop(result);
-              }),
+              if(showPickGalleryOption == true)
+                ...[
+                  // Upload from Gallery option
+                  _buildUploadOption("Upload from Gallery", () async {
+                    final result = await controller.pickImageFromGallery(returnBase64: returnBase64);
+                    Navigator.of(context).pop(result);
+                  }),
+                ],
               Divider(color: AppColors.kSkyBlue),
               // Upload from Camera option
               _buildUploadOption("Upload from Camera", () async {
