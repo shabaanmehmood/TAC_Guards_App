@@ -20,10 +20,10 @@ class Job {
   final int noOfGuardsRequired;
   final bool leaderRequired;
   final String jobSOPs;
-  final String reportingManagerNumber;
-  final String reportingManagerName;
-  final String minAge;
-  final String maxAge;
+  final String? reportingManagerNumber;
+  final String? reportingManagerName;
+  final String? minAge;
+  final String? maxAge;
   final String minumumLevel;
   final String maximumLevel;
   final DateTime createdAt;
@@ -49,10 +49,10 @@ class Job {
     required this.noOfGuardsRequired,
     required this.leaderRequired,
     required this.jobSOPs,
-    required this.reportingManagerNumber,
-    required this.reportingManagerName,
-    required this.minAge,
-    required this.maxAge,
+    this.reportingManagerNumber,
+    this.reportingManagerName,
+    this.minAge,
+    this.maxAge,
     required this.minumumLevel,
     required this.maximumLevel,
     required this.createdAt,
@@ -79,10 +79,10 @@ class Job {
     noOfGuardsRequired: json['noOfGuardsRequired'],
     leaderRequired: json['leaderRequired'],
     jobSOPs: json['jobSOPs'],
-    reportingManagerNumber: json['reportingManagerNumber'],
-    reportingManagerName: json['reportingManagerName'],
-    minAge: json['minAge'],
-    maxAge: json['maxAge'],
+    reportingManagerNumber: json['reportingManagerNumber'] ?? '',
+    reportingManagerName: json['reportingManagerName'] ?? '',
+    minAge: json['minAge'] ?? '',
+    maxAge: json['maxAge'] ?? '',
     minumumLevel: json['minumumLevel'],
     maximumLevel: json['maximumLevel'],
     createdAt: DateTime.parse(json['createdAt']),

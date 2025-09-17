@@ -26,6 +26,7 @@ class JobController extends GetxController {
         },
       );
       if (response.statusCode == 200) {
+        debugPrint('Response Body: ${response.body}');
         final Map<String, dynamic> jsonMap = json.decode(response.body);
         final data = jsonMap['data'];
         if (data is List) {

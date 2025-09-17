@@ -1,7 +1,7 @@
 class PremisesType {
   final String id;
   final String name;
-  final String? description;
+  final String? description;     // ← nullable
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -14,9 +14,9 @@ class PremisesType {
   });
 
   factory PremisesType.fromJson(Map<String, dynamic> json) => PremisesType(
-    id: json['id'],
-    name: json['name'],
-    description: json['description'],
+    id: json['id'] as String,
+    name: json['name'] as String,
+    description: json['description'] as String?,
     createdAt: DateTime.parse(json['createdAt']),
     updatedAt: DateTime.parse(json['updatedAt']),
   );

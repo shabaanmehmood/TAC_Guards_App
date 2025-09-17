@@ -1,6 +1,6 @@
 class Preference {
   final String id;
-  final String? requiredSkills;
+  final String? requiredSkills;   // ← nullable
   final int minYearsExperience;
   final int maxYearsExperience;
   final String appearanceRequirements;
@@ -18,11 +18,11 @@ class Preference {
   });
 
   factory Preference.fromJson(Map<String, dynamic> json) => Preference(
-    id: json['id'],
-    requiredSkills: json['requiredSkills'],
-    minYearsExperience: json['minYearsExperience'],
-    maxYearsExperience: json['maxYearsExperience'],
-    appearanceRequirements: json['appearanceRequirements'],
+    id: json['id'] as String,
+    requiredSkills: json['requiredSkills'] as String?,
+    minYearsExperience: json['minYearsExperience'] as int,
+    maxYearsExperience: json['maxYearsExperience'] as int,
+    appearanceRequirements: json['appearanceRequirements'] as String,
     createdAt: DateTime.parse(json['createdAt']),
     updatedAt: DateTime.parse(json['updatedAt']),
   );

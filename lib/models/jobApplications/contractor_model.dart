@@ -8,18 +8,18 @@ class Contractor {
   final String role;
   final String dob;
   final bool isVerified;
-  final String phone;
+  final String? phone;                       // ← nullable
   final String gender;
   final bool isActive;
   final bool isDeleted;
-  final String postalAddress;
-  final String? postalCode;
-  final String? masterSecurityLicense;
-  final String australianBusinessNumber;
-  final String? australianCompanyNumber;
+  final String? postalAddress;               // ← nullable
+  final String? postalCode;                  // ← nullable
+  final String? masterSecurityLicense;       // ← nullable
+  final String? australianBusinessNumber;    // ← nullable
+  final String? australianCompanyNumber;     // ← nullable
   final DateTime createdAt;
   final DateTime updatedAt;
-  final String registeringAs;
+  final String? registeringAs;               // ← nullable
   final List<PersonalDetail> personalDetails;
 
   Contractor({
@@ -30,43 +30,44 @@ class Contractor {
     required this.role,
     required this.dob,
     required this.isVerified,
-    required this.phone,
+    this.phone,
     required this.gender,
     required this.isActive,
     required this.isDeleted,
-    required this.postalAddress,
+    this.postalAddress,
     this.postalCode,
     this.masterSecurityLicense,
-    required this.australianBusinessNumber,
+    this.australianBusinessNumber,
     this.australianCompanyNumber,
     required this.createdAt,
     required this.updatedAt,
-    required this.registeringAs,
+    this.registeringAs,
     required this.personalDetails,
   });
 
   factory Contractor.fromJson(Map<String, dynamic> json) => Contractor(
-    id: json['id'],
-    name: json['name'],
-    email: json['email'],
-    password: json['password'],
-    role: json['role'],
-    dob: json['dob'],
-    isVerified: json['isVerified'],
-    phone: json['phone'],
-    gender: json['gender'],
-    isActive: json['isActive'],
-    isDeleted: json['isDeleted'],
-    postalAddress: json['postalAddress'],
-    postalCode: json['postalCode'],
-    masterSecurityLicense: json['masterSecurityLicense'],
-    australianBusinessNumber: json['australianBusinessNumber'],
-    australianCompanyNumber: json['australianCompanyNumber'],
+    id: json['id'] as String,
+    name: json['name'] as String,
+    email: json['email'] as String,
+    password: json['password'] as String,
+    role: json['role'] as String,
+    dob: json['dob'] as String,
+    isVerified: json['isVerified'] as bool,
+    phone: json['phone'] as String?,
+    gender: json['gender'] as String,
+    isActive: json['isActive'] as bool,
+    isDeleted: json['isDeleted'] as bool,
+    postalAddress: json['postalAddress'] as String?,
+    postalCode: json['postalCode'] as String?,
+    masterSecurityLicense: json['masterSecurityLicense'] as String?,
+    australianBusinessNumber: json['australianBusinessNumber'] as String?,
+    australianCompanyNumber: json['australianCompanyNumber'] as String?,
     createdAt: DateTime.parse(json['createdAt']),
     updatedAt: DateTime.parse(json['updatedAt']),
-    registeringAs: json['registeringAs'],
+    registeringAs: json['registeringAs'] as String?,
     personalDetails: (json['personalDetails'] as List<dynamic>?)
         ?.map((e) => PersonalDetail.fromJson(e))
-        .toList() ?? [],
+        .toList() ??
+        [],
   );
 }

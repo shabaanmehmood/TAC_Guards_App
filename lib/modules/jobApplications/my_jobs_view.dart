@@ -140,8 +140,13 @@ class MyJobsView1 extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         }
         if (jobs.isEmpty) {
-          return Center(
-            child: Text('No jobs found', style: TextStyle(color: Colors.white)),
+          return GestureDetector(
+            onTap: () {
+              jobController.refreshJobs();
+            },
+            child: Center(
+              child: Text('No jobs found', style: TextStyle(color: Colors.white)),
+            ),
           );
         }
         return ListView.separated(
