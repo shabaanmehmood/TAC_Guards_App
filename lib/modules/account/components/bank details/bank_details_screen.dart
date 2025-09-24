@@ -160,13 +160,50 @@ class _BankDetailsScreenState extends State<BankDetailsScreen> {
                   ),
                   const Spacer(),
                   const Icon(Icons.account_balance, color: AppColors.kWhite, size: 28),
+                  InkWell(
+            onTap: () => showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) => Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.kDarkBlue,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ListTile(
+                    //   leading: const Icon(Icons.edit, color: AppColors.kWhite),
+                    //   title: const Text('Edit', style: TextStyle(color: AppColors.kWhite)),
+                    //   onTap: () {
+                    //     Get.back();
+                    //     Get.snackbar('Edit', 'Edit feature coming soon',
+                    //         snackPosition: SnackPosition.BOTTOM,
+                    //         backgroundColor: AppColors.kgrey,
+                    //         colorText: AppColors.kWhite);
+                    //   },
+                    // ),
+                    ListTile(
+                      leading: const Icon(Icons.delete_outline, color: AppColors.kRed),
+                      title: const Text('Delete', style: TextStyle(color: AppColors.kRed)),
+                      onTap: () {
+
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            child: const Icon(Icons.more_vert, color: Colors.white70),
+          ),
                 ],
               ),
               const SizedBox(height: 28),
               Text(
                 accountNumber,
                 style: const TextStyle(
-                  color: AppColors.kSkyBlue,
+                  color: AppColors.kWhite,
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 2,
@@ -218,47 +255,47 @@ class _BankDetailsScreenState extends State<BankDetailsScreen> {
             ],
           ),
         ),
-        Positioned(
-          top: 12,
-          right: 12,
-          child: InkWell(
-            onTap: () => showModalBottomSheet(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) => Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.kDarkBlue,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // ListTile(
-                    //   leading: const Icon(Icons.edit, color: AppColors.kWhite),
-                    //   title: const Text('Edit', style: TextStyle(color: AppColors.kWhite)),
-                    //   onTap: () {
-                    //     Get.back();
-                    //     Get.snackbar('Edit', 'Edit feature coming soon',
-                    //         snackPosition: SnackPosition.BOTTOM,
-                    //         backgroundColor: AppColors.kgrey,
-                    //         colorText: AppColors.kWhite);
-                    //   },
-                    // ),
-                    ListTile(
-                      leading: const Icon(Icons.delete_outline, color: AppColors.kRed),
-                      title: const Text('Delete', style: TextStyle(color: AppColors.kRed)),
-                      onTap: () {
+        // Positioned(
+        //   top: 12,
+        //   right: 12,
+        //   child: InkWell(
+        //     onTap: () => showModalBottomSheet(
+        //       context: context,
+        //       backgroundColor: Colors.transparent,
+        //       builder: (_) => Container(
+        //         decoration: const BoxDecoration(
+        //           color: AppColors.kDarkBlue,
+        //           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        //         ),
+        //         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        //         child: Column(
+        //           mainAxisSize: MainAxisSize.min,
+        //           children: [
+        //             // ListTile(
+        //             //   leading: const Icon(Icons.edit, color: AppColors.kWhite),
+        //             //   title: const Text('Edit', style: TextStyle(color: AppColors.kWhite)),
+        //             //   onTap: () {
+        //             //     Get.back();
+        //             //     Get.snackbar('Edit', 'Edit feature coming soon',
+        //             //         snackPosition: SnackPosition.BOTTOM,
+        //             //         backgroundColor: AppColors.kgrey,
+        //             //         colorText: AppColors.kWhite);
+        //             //   },
+        //             // ),
+        //             ListTile(
+        //               leading: const Icon(Icons.delete_outline, color: AppColors.kRed),
+        //               title: const Text('Delete', style: TextStyle(color: AppColors.kRed)),
+        //               onTap: () {
 
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            child: const Icon(Icons.more_vert, color: Colors.white70),
-          ),
-        ),
+        //               },
+        //             ),
+        //           ],
+        //         ),
+        //       ),
+        //     ),
+        //     child: const Icon(Icons.more_vert, color: Colors.white70),
+        //   ),
+        // ),
       ],
     );
   }

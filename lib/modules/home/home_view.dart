@@ -158,6 +158,8 @@ Widget _appBar(BuildContext context) {
             icon2: AppAssets.kSearch,
             guardsController: guardsController, // Pass the found controller
           ),
+
+          
         ],
       ),
     ),

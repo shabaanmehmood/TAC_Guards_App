@@ -111,7 +111,7 @@ class _LandingPageState extends State<LandingPage> {
                     height: 20,
                     width: 20,
                   ),
-                  label: 'Jobs',
+                  label: 'Find Jobs',
                   activeIcon: SvgPicture.asset(
                     AppAssets.kGuards,
                     color: AppColors.kSkyBlue,

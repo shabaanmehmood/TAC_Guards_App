@@ -473,7 +473,7 @@ class GuardsView extends StatelessWidget {
             children: [
               _appBar(context),
               SizedBox(height: AppSpacing.tenVertical),
-              Text('Find Jobs', style: AppTypography.kBold20.copyWith(
+              Text('Available Jobs', style: AppTypography.kBold20.copyWith(
                   color: AppColors.kWhite
               )),
               SizedBox(height: AppSpacing.fiveVertical),
@@ -507,6 +507,21 @@ class GuardsView extends StatelessWidget {
   }
 
   Widget _buildFilterChip(String label, GuardsViewController controller) {
+    String displayTitle;
+
+  // Determine the display title based on the filter chip's label
+  if (label == "All") {
+    displayTitle = "All Jobs";
+  } else if (label == "Armed") {
+    displayTitle = "Armed Guard";
+  } else if (label == "Event") {
+    displayTitle = "Event Security";
+  } else if (label == "Corporate") {
+    displayTitle = "Corporate";
+  } else {
+    // Fallback for any other labels
+    displayTitle = label;
+  }
     return Obx(() => FilterChip(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -514,7 +529,7 @@ class GuardsView extends StatelessWidget {
               color: AppColors.kSkyBlue
           )
       ),
-      label: Text(label),
+      label: Text(displayTitle),
       selected: controller.selectedFilter.value == label,
       onSelected: (bool selected) {
         if (selected) {

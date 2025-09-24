@@ -582,6 +582,12 @@ class SearchField extends StatelessWidget {
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
+              disabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  color: Colors.grey,
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
               prefixIcon: leadingIcon != null
                   ? Image.asset(
                 AppAssets.kSearch,
