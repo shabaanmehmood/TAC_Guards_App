@@ -8,6 +8,7 @@ import '../../../controllers/user_controller.dart';
 import '../../../dataproviders/api_service.dart';
 import '../../../routes/app_routes.dart';
 import '../../Guards/guards_view.dart';
+import '../../Messages/socket_file.dart';
 
 class LogoutController extends GetxController {
   final userController = Get.find<UserController>();
@@ -31,6 +32,9 @@ class LogoutController extends GetxController {
         await prefs.remove(AppConstants.rememberEmailKey);
         await prefs.remove(AppConstants.rememberPasswordKey);
         await prefs.remove(AppConstants.loginTimeKey);
+        userController.clearUser();
+        SocketService().disconnect();
+
         // await clearLoginSession();
         Get.offAllNamed(AppRoutes.getSignInRoute());
         // Clear the distance cache when logging out

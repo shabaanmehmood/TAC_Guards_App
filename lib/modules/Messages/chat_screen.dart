@@ -7,6 +7,7 @@ import '../../data/data/constants/app_typography.dart';
 import 'chat_controller.dart';
 import 'client profile/client_profile_screen.dart';
 import 'message_model.dart';
+import 'messages_controller.dart';
 
 class ChatScreen extends StatefulWidget {
   final String name;
@@ -70,7 +71,11 @@ class _ChatScreenState extends State<ChatScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Image.asset(AppAssets.kBack, width: 24, height: 24),
-          onPressed: () => Get.back(),
+            onPressed: (){
+              final messagesController = Get.find<MessagesController>();
+              messagesController.refreshFromChatScreen();
+              Get.back(result: true);
+            }
         ),
         title: Row(
           children: [
