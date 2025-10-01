@@ -16,9 +16,9 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   int _currentImageIndex = 0;
   final List<String> _images = [
-    'assets/splash_Logo1.png',
+    'assets/logo.png',
     'assets/logoforhomescreen.png',
-    'assets/splash_Logo2.png',
+    // 'assets/splash_Logo2.png',
   ];
 
   @override
