@@ -12,6 +12,8 @@ import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/routes/app_routes.dart';
 import 'controllers/user_controller.dart';
 import 'data/data/constants/app_theme.dart';
+import './request_permissions.dart';
+
 
 // Future<String> getInitialRoute() async {
 //   final prefs = await SharedPreferences.getInstance();
@@ -33,22 +35,22 @@ import 'data/data/constants/app_theme.dart';
 //   }
 // }
 
-
 // ✅ Top-level background handler
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(); // required in background isolate
   print("📩 Background message received: ${message.notification?.title}");
 }
 
-
 void main() async {
-   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  
+  // Request location permissions at app startup
+  await requestPermissions();
+
   // ✅ Background handler registration MUST be BEFORE runApp()
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -56,7 +58,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations(
     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
   );
-  
+
   // ✅ Initialize Local Notifications
   NotificationServices.requestNotificationPermission();
   NotificationServices.localNotiInit();
@@ -65,8 +67,8 @@ void main() async {
   NotificationHandlerController.initializeFCMHandlers();
   await NotificationHandlerController.handleTerminatedState();
   Get.put(UserController(), permanent: true);
-   Get.put(MapController(), permanent: true); // <-- Add this line here
-  // Get.put(GuardsViewController(),permanent: true); 
+  Get.put(MapController(), permanent: true); // <-- Add this line here
+  // Get.put(GuardsViewController(),permanent: true);
   // final initialRoute = await getInitialRoute();
   // runApp(Main(initialRoute: initialRoute,));
   runApp(

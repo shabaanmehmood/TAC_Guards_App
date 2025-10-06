@@ -45,27 +45,31 @@ class JobData {
 
   factory JobData.fromJson(Map<String, dynamic> json) {
     return JobData(
-      id: json['jobId'] ?? '', // API: jobId
+      id: json['id'] ?? json['jobId'] ?? '', // Support both jobId and id
       title: json['jobTitle'] ?? '',
       description: json['jobDescription'] ?? '',
-      responsibilities: json['jobResponsibilities'] ?? '', // Not present in API, nullable
+      responsibilities:
+          json['jobResponsibilities'] ?? '', // Not present in API, nullable
       location: json['jobLocation'] ?? '',
       latitude: json['jobLatitude'] ?? '', // Not present in API, nullable
       longitude: json['jobLongitude'] ?? '', // Not present in API, nullable
       noOfGuardsRequired: json['noOfGuardsRequired'] ?? 0,
-      leaderRequired: json['leaderRequired'] ?? '', // Not present in API, nullable
+      leaderRequired:
+          json['leaderRequired'] ?? '', // Not present in API, nullable
       payPerHour: json['payPerHour'] ?? '',
       jobSOPs: json['jobSOPs'] ?? '', // Not present in API, nullable
-      createdAt: DateTime.tryParse(json['jobCreatedAt'] ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['jobUpdatedAt'] ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['jobCreatedAt'] ?? '') ?? DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['jobUpdatedAt'] ?? '') ?? DateTime.now(),
       contractorId: json['contractorId'] ?? '',
       contractorName: json['contractorName'] ?? '',
       categoryName: json['categoryName'] ?? '',
       premisesTypeName: json['premisesTypeName'] ?? '',
       distance: json['distance'] != null
           ? (json['distance'] is num
-          ? (json['distance'] as num).toDouble()
-          : double.tryParse(json['distance'].toString()))
+              ? (json['distance'] as num).toDouble()
+              : double.tryParse(json['distance'].toString()))
           : null,
       shifts: (json['shifts'] as List<dynamic>? ?? [])
           .map((item) => Shift.fromJson(item))

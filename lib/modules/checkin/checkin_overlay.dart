@@ -15,6 +15,7 @@ import 'dummy_data.dart'; // Import the dummy data file
 
 class CheckInPage extends StatelessWidget {
   final JobModel job;
+
   final String shiftId;
   final String latitude;
   final String longitude;
@@ -22,10 +23,16 @@ class CheckInPage extends StatelessWidget {
   final bool isCheckOutRequired;
   final CheckInController controller = Get.put(CheckInController());
   final UserController userController = Get.find<UserController>();
-  final UploadFileController uploadFileController = Get.put(UploadFileController());
+  final UploadFileController uploadFileController =
+      Get.put(UploadFileController());
 
-
-  CheckInPage({required this.job, required this.shiftId, required this.latitude, required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired});
+  CheckInPage(
+      {required this.job,
+      required this.shiftId,
+      required this.latitude,
+      required this.longitude,
+      required this.isCheckInRequired,
+      required this.isCheckOutRequired});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +63,9 @@ class CheckInPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    isCheckInRequired ? 'Confirm Your Check-in' : 'Confirm Your Check-out',
+                    isCheckInRequired
+                        ? 'Confirm Your Check-in'
+                        : 'Confirm Your Check-out',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -157,17 +166,32 @@ class CheckInPage extends StatelessWidget {
                         padding: EdgeInsets.symmetric(vertical: 20),
                       ),
                       onPressed: () async {
-                        if(controller.isChecked.value){
-                          String? selfieBase64 = await uploadFileController.showUploadFileBottomSheet(context, returnBase64: true, showPickFileOption: false, showPickGalleryOption: false);
-                          if (selfieBase64 != null){
-                            if(isCheckInRequired == true && isCheckOutRequired == false) {
-                              controller.checkIn(shiftId, userController.userData.value!.id!, latitude, longitude, selfieBase64);
+                        if (controller.isChecked.value) {
+                          String? selfieBase64 = await uploadFileController
+                              .showUploadFileBottomSheet(context,
+                                  returnBase64: true,
+                                  showPickFileOption: false,
+                                  showPickGalleryOption: false);
+                          if (selfieBase64 != null) {
+                            if (isCheckInRequired == true &&
+                                isCheckOutRequired == false) {
+                              controller.checkIn(
+                                  shiftId,
+                                  userController.userData.value!.id!,
+                                  double.parse(latitude),
+                                  double.parse(longitude),
+                                  selfieBase64);
+                              // add location monitoring start here
+                            } else if (isCheckOutRequired == true &&
+                                isCheckInRequired == false) {
+                              controller.checkOut(
+                                  shiftId,
+                                  userController.userData.value!.id!,
+                                  latitude,
+                                  longitude,
+                                  selfieBase64);
                             }
-                            else if (isCheckOutRequired == true && isCheckInRequired == false) {
-                              controller.checkOut(shiftId, userController.userData.value!.id!, latitude, longitude, selfieBase64);
-                            }
-                          }
-                          else {
+                          } else {
                             Get.snackbar(
                               "Picture Required",
                               "Please upload a selfie to confirm your check-in/out.",
@@ -175,8 +199,7 @@ class CheckInPage extends StatelessWidget {
                               colorText: Colors.white,
                             );
                           }
-                        }
-                        else{
+                        } else {
                           Get.snackbar(
                             "Acknowledgment Required",
                             "Please acknowledge your duty by checking the box.",
@@ -188,14 +211,18 @@ class CheckInPage extends StatelessWidget {
                       },
                       child: controller.isLoading.value
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                          : Text(isCheckInRequired ? 'Confirm Check-in' : 'Confirm Check-out',),
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              isCheckInRequired
+                                  ? 'Confirm Check-in'
+                                  : 'Confirm Check-out',
+                            ),
                     ),
                   ),
                 ],

@@ -22,8 +22,6 @@ class MyJobsView extends StatefulWidget {
 }
 
 class _MyJobsViewState extends State<MyJobsView> {
-
-
   List<JobCardController> jobCardControllers = [];
   String selectedFilter = "All"; // Default filter
 
@@ -46,12 +44,15 @@ class _MyJobsViewState extends State<MyJobsView> {
       backgroundColor: AppColors.kDarkBlue,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
+          padding:
+              EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _appBar(context),
-              SizedBox(height: AppSpacing.fifteenVertical,),
+              SizedBox(
+                height: AppSpacing.fifteenVertical,
+              ),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Wrap(
@@ -65,11 +66,14 @@ class _MyJobsViewState extends State<MyJobsView> {
                   ],
                 ),
               ),
-              SizedBox(height: AppSpacing.tenVertical,),
+              SizedBox(
+                height: AppSpacing.tenVertical,
+              ),
               Flexible(
                 child: ListView.separated(
                   itemCount: filteredJobs.length,
-                  separatorBuilder: (context, index) => SizedBox(height: AppSpacing.fifteenVertical),
+                  separatorBuilder: (context, index) =>
+                      SizedBox(height: AppSpacing.fifteenVertical),
                   itemBuilder: (context, index) {
                     return MyJobCard(
                       controller: filteredJobs[index],
@@ -101,20 +105,21 @@ class _MyJobsViewState extends State<MyJobsView> {
     return FilterChip(
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(
-              color: AppColors.kSkyBlue
-          )
+          side: const BorderSide(color: AppColors.kSkyBlue)),
+      label: Text(
+        label,
       ),
-      label: Text(label,),
       selected: selectedFilter == label,
       onSelected: (bool selected) {
         setState(() {
           selectedFilter = label;
         });
       },
-      backgroundColor: AppColors.kDarkBlue, // Unselected chips will have Dark Blue background
+      backgroundColor: AppColors
+          .kDarkBlue, // Unselected chips will have Dark Blue background
       selectedColor: AppColors.kSkyBlue, // Selected chip color
-      disabledColor: AppColors.kDarkBlue, // Ensure disabled chips also have Dark Blue background
+      disabledColor: AppColors
+          .kDarkBlue, // Ensure disabled chips also have Dark Blue background
       showCheckmark: false, // No checkmark inside the chip
       surfaceTintColor: Colors.transparent, // Prevent unwanted overlay effects
       labelStyle: AppTypography.kBold14.copyWith(
@@ -144,16 +149,17 @@ Widget _appBar(BuildContext context) {
           ),
           const Spacer(),
           ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),//or 15.0
+            borderRadius: BorderRadius.circular(10.0), //or 15.0
             child: SizedBox(
                 height: 40.0,
                 width: 40.0,
-                child: Image.asset(AppAssets.kPlusSign)
-            ),
+                child: Image.asset(AppAssets.kPlusSign)),
           )
         ],
       ),
-      SizedBox(height: AppSpacing.tenVertical,),
+      SizedBox(
+        height: AppSpacing.tenVertical,
+      ),
       SearchField(
         isBorderBlue: true,
         isIconColorBlue: true,
@@ -163,4 +169,3 @@ Widget _appBar(BuildContext context) {
     ],
   );
 }
-

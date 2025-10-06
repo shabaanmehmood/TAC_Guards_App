@@ -19,7 +19,8 @@ class JobController extends GetxController {
     isLoading.value = true;
     try {
       var functionUrl = 'jobApplication/applications/$userId';
-      final response = await http.get(Uri.parse(apiService.baseurl + functionUrl),
+      final response = await http.get(
+        Uri.parse(apiService.baseurl + functionUrl),
         headers: {
           "Content-Type": "application/json",
           'ngrok-skip-browser-warning': 'true',
@@ -30,7 +31,8 @@ class JobController extends GetxController {
         final Map<String, dynamic> jsonMap = json.decode(response.body);
         final data = jsonMap['data'];
         if (data is List) {
-          allApplications.value = data.map((e) => JobApplication.fromJson(e)).toList();
+          allApplications.value =
+              data.map((e) => JobApplication.fromJson(e)).toList();
         } else if (data is Map) {
           allApplications.value = [JobApplication.fromJson(data)];
         } else {
@@ -115,7 +117,6 @@ class JobController extends GetxController {
     }
   }
 
-
   @override
   void onInit() {
     super.onInit();
@@ -149,14 +150,16 @@ class JobController extends GetxController {
 
       if (job.status.toLowerCase() == 'active') {
         // Check-in required only
-        if ((shift.checkInRequired ?? false) && !(shift.checkOutRequired ?? false)) {
+        if ((shift.checkInRequired ?? false) &&
+            !(shift.checkOutRequired ?? false)) {
           cardStatus = 'In Progress';
           statusLabel = 'In Progress';
           buttonText = 'Check In';
           showButton = true;
         }
         // Check-out required only
-        else if (!(shift.checkInRequired ?? false) && (shift.checkOutRequired ?? false)) {
+        else if (!(shift.checkInRequired ?? false) &&
+            (shift.checkOutRequired ?? false)) {
           cardStatus = 'Awaiting';
           statusLabel = 'Awaiting';
           buttonText = 'Check Out';
@@ -168,26 +171,22 @@ class JobController extends GetxController {
           buttonText = null;
           showButton = false;
         }
-      }
-      else if (job.status.toLowerCase() == 'completed') {
+      } else if (job.status.toLowerCase() == 'completed') {
         cardStatus = 'Completed';
         statusLabel = 'Completed';
         buttonText = 'Share your review';
         showButton = true;
-      }
-      else if (job.status.toLowerCase() == 'pending') {
+      } else if (job.status.toLowerCase() == 'pending') {
         cardStatus = 'Pending';
         statusLabel = 'Pending';
         buttonText = null;
         showButton = false;
-      }
-      else if (job.status.toLowerCase() == 'cancelled') {
+      } else if (job.status.toLowerCase() == 'cancelled') {
         cardStatus = 'Cancelled';
         statusLabel = 'Cancelled';
         buttonText = null;
         showButton = false;
-      }
-      else {
+      } else {
         cardStatus = job.status.capitalizeFirst ?? '';
         statusLabel = cardStatus;
         buttonText = null;
@@ -195,6 +194,7 @@ class JobController extends GetxController {
       }
 
       return JobModel(
+        id: job.id ?? jobApp.id,
         title: job.title,
         guardName: jobApp.job.contractor.name ?? '--',
         rating: '',
@@ -205,9 +205,10 @@ class JobController extends GetxController {
             : '',
         status: cardStatus, // Controls background and status
         statusLabel: statusLabel,
-        price: job.payPerHour.isNotEmpty && job.status.toLowerCase() == 'completed'
-            ? '\$${job.payPerHour}'
-            : '',
+        price:
+            job.payPerHour.isNotEmpty && job.status.toLowerCase() == 'completed'
+                ? '\$${job.payPerHour}'
+                : '',
         remainingTime: null,
         nestedCards: null,
         showButton: showButton,
@@ -215,7 +216,6 @@ class JobController extends GetxController {
       );
     }).toList();
   }
-
 
 // Helper (add to your controller - or pass in as a function)
   String _mapStatus(String apiStatus) {
@@ -232,6 +232,4 @@ class JobController extends GetxController {
         return apiStatus.capitalizeFirst ?? '';
     }
   }
-
-
 }

@@ -2,6 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs access to your location while the app is in use.</string>
+
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>This app needs access to your location even in background.</string>
+
+<key>NSLocationAlwaysUsageDescription</key>
+<string>This app needs access to your location to track jobs in background.</string>
+
+<key>UIBackgroundModes</key>
+<array>
+    <string>location</string>
+</array>
+
     <key>GOOGLE_MAPS_API_KEY</key>
     <string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>CFBundleDevelopmentRegion</key>

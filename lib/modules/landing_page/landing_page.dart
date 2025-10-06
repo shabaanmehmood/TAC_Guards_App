@@ -26,7 +26,7 @@ class _LandingPageState extends State<LandingPage> {
   late int _currentIndex;
 
   final List<Widget> _pages = [
-    const HomeView(),
+     HomeView(),
     const GuardsView(),
     MyJobsView1(),
     MessagesScreen(),

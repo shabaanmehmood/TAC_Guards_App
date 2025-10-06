@@ -12,7 +12,7 @@ class JobModel {
   final List<String>? nestedCards; // only for Pending
   final bool showButton;
   final String? buttonText;
-
+  String? id;
   JobModel({
     required this.title,
     required this.guardName,
@@ -27,5 +27,6 @@ class JobModel {
     this.nestedCards,
     required this.showButton,
     this.buttonText,
+    this.id,
   });
 }

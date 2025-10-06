@@ -21,8 +21,7 @@ class MyJobsView1 extends StatelessWidget {
   final JobController jobController = Get.put(JobController());
   // final JobApplicationController jobController = Get.put(JobApplicationController());
   final TextEditingController searchController = TextEditingController();
-  final GuardsViewController guardsController=  Get.put(GuardsViewController());
-
+  final GuardsViewController guardsController = Get.put(GuardsViewController());
 
   MyJobsView1({super.key});
 
@@ -61,19 +60,20 @@ class MyJobsView1 extends StatelessWidget {
             //   fit: BoxFit.contain,
             // ),
             Row(
-                children: [
-                  Image.asset(
-                     AppAssets.kTacHomeScreenLogo,
-                    height: Get.height * 0.045,
-                    // width: Get.width * 0.18,
-                    fit: BoxFit.contain,
-                  ),
-                  Text(
-                    'My Jobs',
-                    style: AppTypography.kBold16.copyWith(color: AppColors.kWhite),
-                  ),
-                ],
-              ), 
+              children: [
+                Image.asset(
+                  AppAssets.kTacHomeScreenLogo,
+                  height: Get.height * 0.045,
+                  // width: Get.width * 0.18,
+                  fit: BoxFit.contain,
+                ),
+                Text(
+                  'My Jobs',
+                  style:
+                      AppTypography.kBold16.copyWith(color: AppColors.kWhite),
+                ),
+              ],
+            ),
             // const Spacer(),
             // ClipRRect(
             //   borderRadius: BorderRadius.circular(10),
@@ -86,15 +86,14 @@ class MyJobsView1 extends StatelessWidget {
           ],
         ),
         SizedBox(height: AppSpacing.tenVertical),
-           SearchField(
-            isBorderBlue: true,
-            isEnabled: false,
-            text: 'Search for Security Guards',
-            isIconColorBlue: false,
-            icon2: AppAssets.kSearch,
-            guardsController: guardsController, // Pass the found controller
-          ),  
-         
+        SearchField(
+          isBorderBlue: true,
+          isEnabled: false,
+          text: 'Search for Security Guards',
+          isIconColorBlue: false,
+          icon2: AppAssets.kSearch,
+          guardsController: guardsController, // Pass the found controller
+        ),
       ],
     );
   }
@@ -130,7 +129,7 @@ class MyJobsView1 extends StatelessWidget {
   }
 
   Widget _buildJobList() {
-    var jobs = jobController.filteredJobModels;
+    var jobs = jobController.filteredJobs;
     return RefreshIndicator(
       onRefresh: () async {
         await jobController.refreshJobs(); // Call the refresh function
@@ -145,27 +144,57 @@ class MyJobsView1 extends StatelessWidget {
               jobController.refreshJobs();
             },
             child: Center(
-              child: Text('No jobs found', style: TextStyle(color: Colors.white)),
+              child:
+                  Text('No jobs found', style: TextStyle(color: Colors.white)),
             ),
           );
         }
         return ListView.separated(
           itemCount: jobs.length,
-          separatorBuilder: (_, __) => SizedBox(height: AppSpacing.fifteenVertical),
+          separatorBuilder: (_, __) =>
+              SizedBox(height: AppSpacing.fifteenVertical),
           itemBuilder: (context, index) {
-            final jobApp = jobController.filteredJobs[index];
-            final jobCard = jobs[index];
+            final jobApp = jobs[index];
+            print('shift id is: ${jobApp.assignedShift.shift.id}');
             return JobCardWidget(
-              job: jobCard,
-              shiftId: jobApp.assignedShift.id,
+              job: JobModel(
+                id: jobApp.job.id,
+                title: jobApp.job.title,
+                guardName: jobApp.job.contractor.name ?? '--',
+                rating: '',
+                location: jobApp.job.location,
+                distance: jobApp.job.latitude,
+                time: jobApp.job.shifts.isNotEmpty
+                    ? '${jobApp.job.shifts[0].startTime} - ${jobApp.job.shifts[0].endTime}'
+                    : '',
+                status: jobApp.job.status,
+                statusLabel: jobApp.job.status,
+                price: jobApp.job.payPerHour.isNotEmpty &&
+                        jobApp.job.status.toLowerCase() == 'completed'
+                    ? '\${jobApp.job.payPerHour}'
+                    : '',
+                remainingTime: null,
+                nestedCards: null,
+                showButton: jobApp.assignedShift.checkInRequired ??
+                    false || jobApp.assignedShift.checkOutRequired ??
+                    false,
+                buttonText: jobApp.assignedShift.checkInRequired ?? false
+                    ? 'Check In'
+                    : jobApp.assignedShift.checkOutRequired ?? false
+                        ? 'Check Out'
+                        : null,
+              ),
+              shiftId: jobApp.assignedShift.shift.id,
               latitude: jobApp.job.latitude,
               longitude: jobApp.job.longitude,
               isCheckInRequired: jobApp.assignedShift.checkInRequired ?? false,
-              isCheckOutRequired: jobApp.assignedShift.checkOutRequired ?? false,
+              isCheckOutRequired:
+                  jobApp.assignedShift.checkOutRequired ?? false,
               jobId: jobApp.job.id,
               contractorId: jobApp.job.contractor.id,
               guardId: jobController.userController.userData.value!.id!,
-              date: jobApp.job.shifts.isNotEmpty ? jobApp.job.shifts[0].date : '',
+              date:
+                  jobApp.job.shifts.isNotEmpty ? jobApp.job.shifts[0].date : '',
               time: jobApp.job.shifts.isNotEmpty
                   ? '${jobApp.job.shifts[0].startTime.substring(0, 5)} - ${jobApp.job.shifts[0].endTime.substring(0, 5)}'
                   : '',
@@ -175,6 +204,7 @@ class MyJobsView1 extends StatelessWidget {
       }),
     );
   }
+
   String _mapStatus(String apiStatus) {
     switch (apiStatus.toLowerCase()) {
       case 'active':
@@ -204,12 +234,19 @@ class JobCardWidget extends StatelessWidget {
   final String date;
   final String time;
 
-
-  const JobCardWidget({super.key, required this.job, required this.shiftId, required this.latitude,
-    required this.longitude, required this.isCheckInRequired, required this.isCheckOutRequired,
-    required this.guardId, required this.jobId, required this.contractorId, required this.date, required this.time
-  });
-
+  const JobCardWidget(
+      {super.key,
+      required this.job,
+      required this.shiftId,
+      required this.latitude,
+      required this.longitude,
+      required this.isCheckInRequired,
+      required this.isCheckOutRequired,
+      required this.guardId,
+      required this.jobId,
+      required this.contractorId,
+      required this.date,
+      required this.time});
 
   Color _getCardColor() {
     switch (job.status) {
@@ -364,30 +401,37 @@ class JobCardWidget extends StatelessWidget {
                   minimumSize: Size(double.infinity, 40),
                 ),
                 onPressed: () {
-                  if (isCheckInRequired == true && isCheckOutRequired == false) {
+                  job.id = jobId;
+                  if (isCheckInRequired == true &&
+                      isCheckOutRequired == false) {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude,
-                        isCheckInRequired: isCheckInRequired,
-                        isCheckOutRequired: isCheckOutRequired),
-                    );
-
-                  }
-                  else if (isCheckInRequired == false && isCheckOutRequired == true) {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => CheckInPage(job: job, shiftId: shiftId, latitude: latitude, longitude: longitude,
+                      builder: (_) => CheckInPage(
+                          job: job,
+                          shiftId: shiftId,
+                          latitude: latitude,
+                          longitude: longitude,
                           isCheckInRequired: isCheckInRequired,
                           isCheckOutRequired: isCheckOutRequired),
                     );
-
+                  } else if (isCheckInRequired == false &&
+                      isCheckOutRequired == true) {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => CheckInPage(
+                          job: job,
+                          shiftId: shiftId,
+                          latitude: latitude,
+                          longitude: longitude,
+                          isCheckInRequired: isCheckInRequired,
+                          isCheckOutRequired: isCheckOutRequired),
+                    );
                   } else if (job.buttonText == 'Share your review') {
-                    Get.to(() =>
-                        SubmitReviewScreen(
+                    Get.to(() => SubmitReviewScreen(
                           jobTitle: job.title,
                           guardName: job.guardName,
                           jobDate: time,
