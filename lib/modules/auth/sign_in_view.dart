@@ -566,7 +566,7 @@ class SignInViewController extends GetxController {
     final loginTimestamp = prefs.getInt(loginTimeKey);
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    if (loginTimestamp != null && (now  - loginTimestamp <= 8 * 60 * 60 * 1000)) {
+    if (loginTimestamp != null && (now  - loginTimestamp <= 7 * 24 * 60 * 60 * 1000)) {
       final rememberedEmail = prefs.getString(rememberEmailKey);
       final rememberedPassword = prefs.getString(rememberPasswordKey);
 
@@ -594,7 +594,7 @@ Future<bool> checkAutoLoginAndRedirect() async {
   final loginTimestamp = prefs.getInt(loginTimeKey);
   final now = DateTime.now().millisecondsSinceEpoch;
 
-  if (loginTimestamp != null && (now - loginTimestamp <= 8 * 60 * 60 * 1000)) {
+  if (loginTimestamp != null && (now - loginTimestamp <= 7 * 24 * 60 * 60 * 1000)) {
     final rememberedEmail = prefs.getString(rememberEmailKey);
     final rememberedPassword = prefs.getString(rememberPasswordKey);
 
