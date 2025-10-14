@@ -228,6 +228,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart'; // ✅ added
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
@@ -256,6 +257,32 @@ class UploadFileController extends GetxController {
             mimeType == 'application/pdf');
   }
 
+ /// ✅ Compress image before converting to base64 or returning path
+  Future<File?> _compressImage(File file) async {
+    try {
+      final tempDir = Directory.systemTemp;
+      final targetPath =
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final XFile? result = await FlutterImageCompress.compressAndGetFile(
+        file.path,
+        targetPath,
+        quality: 60, // adjust compression level as needed
+        minWidth: 800,
+        minHeight: 800,
+      );
+
+      if (result != null) {
+        return File(result.path);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Image compression error: $e');
+      return null;
+    }
+  }
+
   /// Picks image from gallery and returns base64 string or file path
   Future<String?> pickImageFromGallery({bool returnBase64 = false}) async {
     final XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
@@ -271,18 +298,41 @@ class UploadFileController extends GetxController {
       return null;
     }
 
+
+
+    // if (returnBase64) {
+    //   final bytes = await File(file.path).readAsBytes();
+    //   final base64Data = base64Encode(bytes);
+    //   final base64Image = 'data:$mimeType;base64,$base64Data';
+
+    //   if (kDebugMode) {
+    //     print('Gallery file base64: $base64Image');
+    //   }
+
+    //   return base64Image;
+    // } else {
+    //   return file.path;
+    // }
+
+      final originalFile = File(file.path);
+    final originalSizeKB = (originalFile.lengthSync() / 1024).toStringAsFixed(2);
+    print('🖼️ Original image size: $originalSizeKB KB');
+
+    final compressedFile = await _compressImage(originalFile);
+    final targetFile = compressedFile ?? originalFile;
+    final compressedSizeKB = (targetFile.lengthSync() / 1024).toStringAsFixed(2);
+    print('📦 Compressed image size: $compressedSizeKB KB');
+
     if (returnBase64) {
-      final bytes = await File(file.path).readAsBytes();
+      final bytes = await targetFile.readAsBytes();
       final base64Data = base64Encode(bytes);
       final base64Image = 'data:$mimeType;base64,$base64Data';
-
       if (kDebugMode) {
-        print('Gallery file base64: $base64Image');
+        print('Gallery file base64 (compressed): $base64Image');
       }
-
       return base64Image;
     } else {
-      return file.path;
+      return targetFile.path;
     }
   }
 
@@ -301,19 +351,40 @@ class UploadFileController extends GetxController {
       return null;
     }
 
+final originalFile = File(file.path);
+    final originalSizeKB = originalFile.lengthSync() / 1024;
+    print('📸 Original image size: ${originalSizeKB.toStringAsFixed(2)} KB');
+
+    final compressedFile = await _compressImage(originalFile);
+    final targetFile = compressedFile ?? originalFile;
+    final compressedSizeKB = targetFile.lengthSync() / 1024;
+    print('🗜️ Compressed image size: ${compressedSizeKB.toStringAsFixed(2)} KB');
+
     if (returnBase64) {
-      final bytes = await File(file.path).readAsBytes();
+      final bytes = await targetFile.readAsBytes();
       final base64Data = base64Encode(bytes);
       final base64Image = 'data:$mimeType;base64,$base64Data';
-
       if (kDebugMode) {
-        print('Camera file base64: $base64Image');
+        print('Camera file base64 (compressed): $base64Image');
       }
-
       return base64Image;
     } else {
-      return file.path;
+      return targetFile.path;
     }
+
+    // if (returnBase64) {
+    //   final bytes = await File(file.path).readAsBytes();
+    //   final base64Data = base64Encode(bytes);
+    //   final base64Image = 'data:$mimeType;base64,$base64Data';
+
+    //   if (kDebugMode) {
+    //     print('Camera file base64: $base64Image');
+    //   }
+
+    //   return base64Image;
+    // } else {
+    //   return file.path;
+    // }
   }
 
   /// Picks file and returns base64 string or file path
