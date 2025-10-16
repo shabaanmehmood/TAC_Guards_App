@@ -61,12 +61,13 @@ class MyJobsView1 extends StatelessWidget {
             // ),
             Row(
               children: [
-                Image.asset(
-                  AppAssets.kTacHomeScreenLogo,
-                  height: Get.height * 0.045,
-                  // width: Get.width * 0.18,
-                  fit: BoxFit.contain,
-                ),
+                 Image.asset(
+                     AppAssets.kTacLogo,
+                    height: Get.height * 0.045,
+                    // width: Get.width * 0.18,
+                    fit: BoxFit.contain,
+                  ),         
+               SizedBox(width: 4),
                 Text(
                   'My Jobs',
                   style:

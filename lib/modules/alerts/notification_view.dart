@@ -284,6 +284,7 @@
 // views/notification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tac/dataproviders/api_service.dart';
 import 'package:tac/modules/alerts/notification_controller.dart';
 import 'package:intl/intl.dart';
 
@@ -333,7 +334,10 @@ class NotificationScreen extends StatelessWidget {
           itemCount: controller.notifications.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
-            final item = controller.notifications[index];
+            final item = controller.notifications[index];  
+           final String? imageUrl = (item.image != null && item.image!.isNotEmpty)
+      ? '${MyApIService.imageBaseUrl}/${item.image}'
+      : null;
             return Container(
               decoration: BoxDecoration(
                 color: const Color(0xFF112240),
@@ -343,16 +347,47 @@ class NotificationScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Container(
+                  //   padding: const EdgeInsets.all(8),
+                  //   decoration: BoxDecoration(
+                  //     color: Colors.blueAccent.withOpacity(0.2),
+                  //     shape: BoxShape.circle,
+                  //   ),
+                  //   child: item.image != null && item.image!.isNotEmpty
+                  //       ? Image.network(item.image!, height: 30, width: 30)
+                  //       : Image.asset('assets/logo.png', height: 30, width: 30),
+                  // ),
+
                   Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blueAccent.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: item.image != null && item.image!.isNotEmpty
-                        ? Image.network(item.image!, height: 30, width: 30)
-                        : Image.asset('assets/logo.png', height: 30, width: 30),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blueAccent.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: ClipOval(
+            child: imageUrl != null
+                ? Image.network(
+                    imageUrl,
+                    height: 30,
+                    width: 30,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Image.asset(
+                        'assets/logo.png',
+                        height: 30,
+                        width: 30,
+                        fit: BoxFit.cover,
+                      );
+                    },
+                  )
+                : Image.asset(
+                    'assets/logo.png',
+                    height: 30,
+                    width: 30,
+                    fit: BoxFit.cover,
                   ),
+          ),
+        ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
