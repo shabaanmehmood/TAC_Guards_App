@@ -66,23 +66,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Row(
                     children: [
-                      Obx((){
-                        final imagePath = userController.userData.value?.profileImages?.first.imageUrl;
-                        final imageUrl = MyApIService.fullImageUrl(imagePath);
-                        return Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(
-                              image:  imageUrl != null
-                                  ? NetworkImage(imageUrl)
-                                  : AssetImage(AppAssets.kUserPicture) as ImageProvider,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        );
-                      }),
+                      // Obx((){
+                      //   final imagePath = userController.userData.value?.profileImages?.first.imageUrl;
+                      //   final imageUrl = MyApIService.fullImageUrl(imagePath);
+                      //   return Container(
+                      //     width: 48,
+                      //     height: 48,
+                      //     decoration: BoxDecoration(
+                      //       borderRadius: BorderRadius.circular(8),
+                      //       image: DecorationImage(
+                      //         image:  imageUrl != null
+                      //             ? NetworkImage(imageUrl)
+                      //             : AssetImage(AppAssets.kUserPicture) as ImageProvider,
+                      //         fit: BoxFit.cover,
+                      //       ),
+                      //     ),
+                      //   );
+                      // }),
+                       Builder(
+        builder: (_) {
+          final profileImages = userController.userData.value?.profileImages;
+          final mainImage = profileImages?.firstWhereOrNull((img) => img.isMain == true);
+          final imageUrl = (mainImage?.imageUrl != null && mainImage!.imageUrl!.isNotEmpty)
+              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
+              : null;
+
+          return Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: imageUrl != null
+                    ? NetworkImage(imageUrl)
+                    :  AssetImage(AppAssets.kUserPicture) as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
                       const SizedBox(width: 12),
                       const Expanded(
                         child: Column(

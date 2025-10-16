@@ -261,7 +261,8 @@ class MyApIService {
     return response;
   }
 
-  static const String imageBaseUrl = 'http://148.66.158.113:3006/';
+  // static const String imageBaseUrl = 'http://148.66.158.113:3006/';
+  static const String imageBaseUrl = 'http://148.66.158.113:3006/uploads';
 
   static String? fullImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) return null;

@@ -224,6 +224,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:tac/controllers/user_controller.dart';
+import 'package:tac/dataproviders/api_service.dart';
 import 'package:tac/modules/Messages/socket_file.dart';
 import '../../data/data/constants/app_assets.dart';
 import '../../data/data/constants/app_colors.dart';
@@ -241,6 +243,7 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   final MessagesController controller = Get.put(MessagesController());
+   final UserController userController = Get.put(UserController());
 
   @override
   void initState() {
@@ -259,7 +262,30 @@ class _MessagesScreenState extends State<MessagesScreen> {
         elevation: 0,
         title: Row(
           children: [
-            Image.asset(AppAssets.kUserPicture, height: 35, width: 35),
+            // Image.asset(AppAssets.kUserPicture, height: 35, width: 35),
+            Builder(
+        builder: (_) {
+          final profileImages = userController.userData.value?.profileImages;
+          final mainImage = profileImages?.firstWhereOrNull((img) => img.isMain == true);
+          final imageUrl = (mainImage?.imageUrl != null && mainImage!.imageUrl!.isNotEmpty)
+              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
+              : null;
+
+          return Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: imageUrl != null
+                    ? NetworkImage(imageUrl)
+                    :  AssetImage(AppAssets.kUserPicture) as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
             SizedBox(width: 8),
             Text('Messages',
                 style: AppTypography.kBold18.copyWith(color: Colors.white)),
