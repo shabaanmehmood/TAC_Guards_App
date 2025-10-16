@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,80 +14,53 @@ class CheckInController extends GetxController {
   var isLoading = false.obs;
   final apiService = MyApIService();
 
+  var selfieBase64 = RxnString();
+
   // Add these variables for location monitoring
   String? _currentShiftId;
   String? _currentGuardId;
   String? _currentJobId;
   StreamSubscription<Position>? _locationStreamSubscription;
   Timer? _locationTimer;
-
+  // helper
+  Uint8List convertBase64ToImage(String base64) =>
+      base64Decode(base64.split(',').last);
   void toggleCheck(bool? value) {
     isChecked.value = value ?? false;
   }
 
-  Future<void> checkIn(String shiftId, String guardId, double latitude,
-      double longitude, String selfieBase64) async {
+  Future<Map<String, dynamic>> checkIn(String shiftId, String guardId,
+      double latitude, double longitude, String selfieBase64) async {
     isLoading.value = true;
     try {
       final response = await apiService.checkinGuard(shiftId, guardId,
           latitude.toString(), longitude.toString(), selfieBase64);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Start location monitoring after successful check-in
-        // Store the current shift and guard info for background monitoring
-        // _currentShiftId = shiftId;
-        // _currentGuardId = guardId;
-        if (response.body != null) {
-          // If response.body is a String, parse it first
-          dynamic responseData = response.body;
-          if (response.body is String) {
-            responseData = json.decode(response.body);
-          }
-
-          // Safe extraction of job ID
-          if (responseData['data'] != null &&
-              responseData['data']['shiftAssignment'] != null &&
-              responseData['data']['shiftAssignment']['application'] != null &&
-              responseData['data']['shiftAssignment']['application']['job'] !=
-                  null) {
-            // Extract Job ID - This is correct
-            _currentJobId = responseData['data']['shiftAssignment']
-                    ['application']['job']['id']
-                .toString();
-            print('Job ID extracted: $_currentJobId');
-            _currentShiftId = shiftId; // Ensure currentShiftId is set
-            _currentGuardId = guardId;
-            print(
-                'shift id is: $_currentShiftId'); // Ensure currentGuardId is set
-            print('Guard id is: $_currentGuardId');
-            // Extract Shift ID - FIXED: shifts is an array, so we need to access first element
-            // if (responseData['data']['shiftAssignment']['application']['job']
-            //             ['shifts'] !=
-            //         null &&
-            //     responseData['data']['shiftAssignment']['application']['job']
-            //             ['shifts']
-            //         .isNotEmpty) {
-            //   _currentShiftId = responseData['data']['shiftAssignment']
-            //           ['application']['job']['shifts'][0]['id']
-            //       .toString();
-            //   print('Shift ID extracted: $_currentShiftId');
-            // } else {
-            //   // Fallback: use the shiftAssignment ID if shifts array is empty
-            //   _currentShiftId =
-            //       responseData['data']['shiftAssignment']['id'].toString();
-            //   print('Shift ID fallback (shiftAssignment ID): $_currentShiftId');
-            // }
-
-            // // Extract Guard ID - This is correct
-            // if (responseData['data']['shiftAssignment']['guard'] != null) {
-            //   _currentGuardId = responseData['data']['shiftAssignment']['guard']
-            //           ['id']
-            //       .toString();
-            //   print('Guard ID extracted: $_currentGuardId');
-            // }
-          } else {
-            print('Required data not found in response structure');
-          }
+        // Parse response body
+        dynamic responseData = response.body;
+        if (response.body is String) {
+          responseData = json.decode(response.body);
         }
+
+        // Safe extraction of job ID
+        if (responseData['data'] != null &&
+            responseData['data']['shiftAssignment'] != null &&
+            responseData['data']['shiftAssignment']['application'] != null &&
+            responseData['data']['shiftAssignment']['application']['job'] !=
+                null) {
+          // Extract Job ID
+          _currentJobId = responseData['data']['shiftAssignment']['application']
+                  ['job']['id']
+              .toString();
+          print('Job ID extracted: $_currentJobId');
+          _currentShiftId = shiftId;
+          _currentGuardId = guardId;
+          print('shift id is: $_currentShiftId');
+          print('Guard id is: $_currentGuardId');
+        } else {
+          print('Required data not found in response structure');
+        }
+
         await _sendLocationToApi(
             shiftId, guardId, latitude, longitude, _currentJobId!);
         // Start background location monitoring
@@ -99,6 +73,15 @@ class CheckInController extends GetxController {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
+
+        // Return response body along with shiftId
+        return {
+          'success': true,
+          'shiftId': shiftId,
+          'responseBody': responseData,
+          'jobId': _currentJobId,
+          'guardId': guardId
+        };
       } else {
         Get.snackbar(
           "Check-in Failed",
@@ -106,6 +89,14 @@ class CheckInController extends GetxController {
           backgroundColor: Colors.red,
           colorText: Colors.white,
         );
+
+        // Return failure response
+        return {
+          'success': false,
+          'shiftId': shiftId,
+          'error': 'HTTP ${response.statusCode}',
+          'responseBody': response.body?.toString()
+        };
       }
     } catch (e) {
       Get.snackbar(
@@ -114,6 +105,14 @@ class CheckInController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+
+      // Return error response
+      return {
+        'success': false,
+        'shiftId': shiftId,
+        'error': e.toString(),
+        'responseBody': null
+      };
     } finally {
       isLoading.value = false;
     }
@@ -233,7 +232,7 @@ class CheckInController extends GetxController {
     );
 
     // Method 1: Use timer for periodic updates (every 30 seconds)
-    _locationTimer = Timer.periodic(Duration(seconds: 30), (timer) async {
+    _locationTimer = Timer.periodic(Duration(minutes: 5), (timer) async {
       try {
         Position currentPosition = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.best,

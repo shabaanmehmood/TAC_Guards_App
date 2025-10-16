@@ -1,14 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:tac/controllers/mapController.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
+import 'package:tac/models/nearbyjob.dart';
 import 'dummy_data.dart';
 import 'job_live_controller.dart';
 
 class JobLiveScreen extends StatelessWidget {
-  final controller = Get.put(JobLiveController());
+  final JobLiveController controller = Get.put(JobLiveController());
+  final MapController mapController = Get.find<MapController>();
+  final Map<String, dynamic> Data;
 
-  JobLiveScreen({super.key});
+  JobLiveScreen({super.key, required this.Data}) {
+    _initializeTimer();
+    _setupJobMarker();
+  }
+
+  void _initializeTimer() {
+    // Pass the complete API data to controller
+    controller.completeApiData = Data;
+
+    final shiftData = Data['responseBody']['data']['shift'];
+    if (shiftData != null) {
+      controller.setShiftStartTime(shiftData['startTime'] ?? 'N/A');
+    }
+  }
+
+  void _setupJobMarker() {
+    final jobData = Data['responseBody']['data']['job'];
+
+    if (jobData != null) {
+      final lat = double.tryParse(jobData['latitude']?.toString() ?? '0.0');
+      final lng = double.tryParse(jobData['longitude']?.toString() ?? '0.0');
+
+      if (lat != null && lng != null && lat != 0.0 && lng != 0.0) {
+        final position = LatLng(lat, lng);
+        mapController.jobPath.value = [position];
+        print("✅ Job location set at: $position (No red marker)");
+      } else {
+        print("❌ Invalid job coordinates: lat=$lat, lng=$lng");
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +98,13 @@ class JobLiveScreen extends StatelessWidget {
   }
 
   Widget _buildHeaderCard() {
+    String title = Data['responseBody']['data']['job']['title'] ?? 'N/A';
+    String? rate =
+        Data['responseBody']['data']['job']['payPerHour']?.toString();
+    String? name = Data['responseBody']['data']['shift']['job']?['contractor']
+            ['name'] ??
+        '';
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -77,7 +119,7 @@ class JobLiveScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  dummyJob['title']!,
+                  title,
                   style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -86,8 +128,10 @@ class JobLiveScreen extends StatelessWidget {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text(dummyJob['name']!,
-                        style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      name ?? dummyJob['name']!,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
                     const SizedBox(width: 6),
                     const Text("Actor", style: TextStyle(color: Colors.grey)),
                   ],
@@ -114,7 +158,7 @@ class JobLiveScreen extends StatelessWidget {
           Column(
             children: [
               Text(
-                dummyJob['rate']!,
+                rate != null ? "\$$rate/hr" : "N/A",
                 style: const TextStyle(
                     color: Colors.cyanAccent,
                     fontSize: 18,
@@ -129,6 +173,10 @@ class JobLiveScreen extends StatelessWidget {
   }
 
   Widget _buildShiftCard() {
+    final shiftData = Data['responseBody']['data']['shift'];
+    final startTime = shiftData['startTime'] ?? 'N/A';
+    final endTime = shiftData['endTime'] ?? 'N/A';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -139,43 +187,86 @@ class JobLiveScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Shift",
+              const Text("Shift",
                   style: TextStyle(
                       color: Colors.white, fontWeight: FontWeight.bold)),
-              Text("Waiting For Approval",
-                  style: TextStyle(color: Colors.amberAccent)),
+              Obx(() => Text(
+                    controller.shiftStatus.value,
+                    style: TextStyle(
+                      color: _getStatusColor(controller.shiftStatus.value),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            "The job timer will start after employer approval.",
-            style: TextStyle(color: Colors.white70),
+          Text(
+            "Shift Time $startTime - $endTime",
+            style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 12),
           Center(
-            child: Text(
-              controller.timerText,
-              style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
-            ),
+            child: Obx(() => Text(
+                  controller.timerText.value,
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: _getTimerColor(controller.timerText.value),
+                  ),
+                )),
           ),
           const SizedBox(height: 8),
-          const Text(
-            "If the employer does not approve within 30 minutes, the timer will start automatically.",
-            style: TextStyle(color: Colors.white38),
-            textAlign: TextAlign.center,
-          ),
+          Obx(() {
+            if (controller.shiftStatus.value == "WAITING FOR SHIFT TIME") {
+              return const Text(
+                "Timer will start automatically when shift begins",
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+                textAlign: TextAlign.center,
+              );
+            } else if (controller.shiftStatus.value == "IN PROGRESS") {
+              return const Text(
+                "Shift in progress - timer will auto-complete at end time",
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+                textAlign: TextAlign.center,
+              );
+            } else if (controller.shiftStatus.value == "COMPLETED") {
+              return const Text(
+                "Shift completed! Navigating...",
+                style: TextStyle(color: Colors.green, fontSize: 12),
+                textAlign: TextAlign.center,
+              );
+            }
+            return const SizedBox();
+          }),
         ],
       ),
     );
   }
 
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case "IN PROGRESS":
+        return const Color(0xFF3677FF);
+      case "COMPLETED":
+        return Colors.green;
+      case "WAITING FOR SHIFT TIME":
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getTimerColor(String timerText) {
+    return Colors.white;
+  }
+
   Widget _buildLocationCard() {
+    String location = Data['responseBody']['data']['job']['location'] ??
+        dummyJob['location']!;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -211,7 +302,7 @@ class JobLiveScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  dummyJob['location']!,
+                  location,
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -223,12 +314,13 @@ class JobLiveScreen extends StatelessWidget {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
-                Image.asset(AppAssets.kMap,
-                    height: 160, width: double.infinity, fit: BoxFit.cover),
+                _buildGoogleMap(),
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      _openDirections(location);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.lightBlueAccent,
                       shape: RoundedRectangleBorder(
@@ -249,6 +341,64 @@ class JobLiveScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildGoogleMap() {
+    return SizedBox(
+      height: 160,
+      width: double.infinity,
+      child: Obx(() {
+        final hasMarkers = mapController.markers.isNotEmpty;
+        final hasJobPath = mapController.jobPath.isNotEmpty;
+
+        LatLng cameraTarget;
+
+        if (hasJobPath) {
+          cameraTarget = mapController.jobPath.first;
+        } else if (hasMarkers) {
+          cameraTarget = mapController.markers.value.first.position;
+        } else {
+          cameraTarget = const LatLng(33.6844, 73.0479);
+        }
+
+        return GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: cameraTarget,
+            zoom: 15,
+          ),
+          markers: mapController.markers.value,
+          onMapCreated: (GoogleMapController googleMapController) {
+            mapController.setMapController(googleMapController);
+
+            if (hasJobPath && mapController.mapController.value != null) {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                mapController.mapController.value?.animateCamera(
+                  CameraUpdate.newLatLngZoom(mapController.jobPath.first, 15),
+                );
+              });
+            }
+          },
+          mapType: MapType.normal,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          zoomControlsEnabled: false,
+          compassEnabled: false,
+          onCameraMove: mapController.updateCameraPosition,
+        );
+      }),
+    );
+  }
+
+  void _openDirections(String location) {
+    final String url =
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(location)}';
+
+    Get.snackbar(
+      "Get Directions",
+      "Would open: $url",
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+  }
+
   Widget _buildCheckInCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -265,23 +415,38 @@ class JobLiveScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Check In Selfie", style: TextStyle(color: Colors.white)),
+                Text("Check In Status", style: TextStyle(color: Colors.white)),
                 SizedBox(height: 4),
-                Text("Submitted", style: TextStyle(color: Colors.white38)),
+                Text("Already Checked In - Waiting for shift start",
+                    style: TextStyle(color: Colors.green)),
               ],
             ),
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.asset(AppAssets.kPer,
-                width: 40, height: 40, fit: BoxFit.cover),
-          )
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Text(
+              "Checked In",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildManagerCard() {
+    String managerName = Data['responseBody']['data']['job']
+            ['reportingManagerName'] ??
+        "Hitesh Sapara";
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -293,13 +458,13 @@ class JobLiveScreen extends StatelessWidget {
           Image.asset(AppAssets.kCal,
               width: 24, height: 24, color: Colors.white60),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Hitesh Sapara", style: TextStyle(color: Colors.white)),
-                SizedBox(height: 4),
-                Text("Reporting Manager",
+                Text(managerName, style: const TextStyle(color: Colors.white)),
+                const SizedBox(height: 4),
+                const Text("Reporting Manager",
                     style: TextStyle(color: Colors.white38)),
               ],
             ),
@@ -317,59 +482,75 @@ class JobLiveScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomSection() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Divider(color: AppColors.kinput), // No padding applied here
-        Container(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-          decoration: const BoxDecoration(
-            color: Color(0xFF0A0E21),
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Obx(() => Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: controller.checkboxValue.value,
-                        onChanged: (val) {
-                          controller.checkboxValue.value = val ?? false;
-                        },
-                        activeColor: Colors.lightBlueAccent,
-                      ),
-                      const Expanded(
-                        child: Text(
-                          "I confirm that I am intentionally ending my shift before the scheduled time. I understand that this action cannot be undone and may require supervisor approval.",
-                          style: TextStyle(color: Colors.white70, fontSize: 10),
-                        ),
-                      )
-                    ],
-                  )),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: controller.checkboxValue.value
-                    ? controller.toggleApproval
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  disabledBackgroundColor: AppColors.kSkyBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  minimumSize: const Size.fromHeight(40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text("Close My Shift",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
+ // ... (all other methods remain exactly the same)
+
+Widget _buildBottomSection() {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Divider(color: AppColors.kinput),
+      Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+        decoration: const BoxDecoration(
+          color: Color(0xFF0A0E21),
+          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
         ),
-      ],
-    );
-  }
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Obx(() => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Checkbox(
+                      value: controller.checkboxValue.value,
+                      onChanged: (val) {
+                        controller.checkboxValue.value = val ?? false;
+                      },
+                      activeColor: Colors.lightBlueAccent,
+                    ),
+                    const Expanded(
+                      child: Text(
+                        "I confirm that I am intentionally ending my shift before the scheduled time. I understand that this action cannot be undone and may require supervisor approval.",
+                        style: TextStyle(color: Colors.white70, fontSize: 10),
+                      ),
+                    )
+                  ],
+                )),
+            const SizedBox(height: 12),
+            Obx(() => ElevatedButton(
+                  onPressed: controller.checkboxValue.value &&
+                          !controller.isNavigating.value
+                      ? () {
+                          print("🔄 Close My Shift button pressed");
+                          controller.handleManualShiftClosure();
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlueAccent,
+                    disabledBackgroundColor: AppColors.kSkyBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    minimumSize: const Size.fromHeight(40),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: controller.isNavigating.value
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text("Close My Shift",
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                )),
+          ],
+        ),
+      ),
+    ],
+  );
+}
 }

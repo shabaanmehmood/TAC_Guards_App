@@ -166,48 +166,56 @@ class CheckInPage extends StatelessWidget {
                         padding: EdgeInsets.symmetric(vertical: 20),
                       ),
                       onPressed: () async {
-                        if (controller.isChecked.value) {
-                          String? selfieBase64 = await uploadFileController
-                              .showUploadFileBottomSheet(context,
-                                  returnBase64: true,
-                                  showPickFileOption: false,
-                                  showPickGalleryOption: false);
-                          if (selfieBase64 != null) {
-                            if (isCheckInRequired == true &&
-                                isCheckOutRequired == false) {
-                              controller.checkIn(
-                                  shiftId,
-                                  userController.userData.value!.id!,
-                                  double.parse(latitude),
-                                  double.parse(longitude),
-                                  selfieBase64);
-                              // add location monitoring start here
-                            } else if (isCheckOutRequired == true &&
-                                isCheckInRequired == false) {
-                              controller.checkOut(
-                                  shiftId,
-                                  userController.userData.value!.id!,
-                                  latitude,
-                                  longitude,
-                                  selfieBase64);
-                            }
-                          } else {
-                            Get.snackbar(
-                              "Picture Required",
-                              "Please upload a selfie to confirm your check-in/out.",
-                              backgroundColor: Colors.redAccent,
-                              colorText: Colors.white,
-                            );
-                          }
-                        } else {
-                          Get.snackbar(
-                            "Acknowledgment Required",
-                            "Please acknowledge your duty by checking the box.",
-                            backgroundColor: Colors.red,
-                            colorText: Colors.white,
-                          );
-                          return;
-                        }
+                        // if (controller.isChecked.value) {
+                        //   String? selfieBase64 = await uploadFileController
+                        //       .showUploadFileBottomSheet(context,
+                        //           returnBase64: true,
+                        //           showPickFileOption: false,
+                        //           showPickGalleryOption: false);
+                        //   if (selfieBase64 != null) {
+                        //     if (isCheckInRequired == true &&
+                        //         isCheckOutRequired == false) {
+                        //       controller.checkIn(
+                        //           shiftId,
+                        //           userController.userData.value!.id!,
+                        //           double.parse(latitude),
+                        //           double.parse(longitude),
+                        //           selfieBase64);
+                        //       // add location monitoring start here
+                        //     } else if (isCheckOutRequired == true &&
+                        //         isCheckInRequired == false) {
+                        //       controller.checkOut(
+                        //           shiftId,
+                        //           userController.userData.value!.id!,
+                        //           latitude,
+                        //           longitude,
+                        //           selfieBase64);
+                        //     }
+                        //   } else {
+                        //     Get.snackbar(
+                        //       "Picture Required",
+                        //       "Please upload a selfie to confirm your check-in/out.",
+                        //       backgroundColor: Colors.redAccent,
+                        //       colorText: Colors.white,
+                        //     );
+                        //   }
+                        // } else {
+                        //   Get.snackbar(
+                        //     "Acknowledgment Required",
+                        //     "Please acknowledge your duty by checking the box.",
+                        //     backgroundColor: Colors.red,
+                        //     colorText: Colors.white,
+                        //   );
+                        //   return;
+                        // }
+                        if (isCheckInRequired == true && isCheckOutRequired == false) {
+  Get.to(() => JobCheckinScreen(), arguments: {
+    'shiftId': shiftId,
+    'latitude': latitude,
+    'longitude': longitude,
+  });
+}
+
                       },
                       child: controller.isLoading.value
                           ? SizedBox(

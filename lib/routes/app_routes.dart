@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -7,6 +6,9 @@ import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/account/account.dart';
 import 'package:tac/modules/auth/sign_up_view.dart';
 import 'package:tac/modules/auth/sign_in_view.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_status_error.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_status_screen.dart';
+import 'package:tac/modules/checkin/jobcheckin/shift_close.dart';
 import 'package:tac/modules/landing_page/landing_page.dart';
 import 'package:tac/modules/splashScreen/splashScreen.dart';
 
@@ -23,10 +25,17 @@ class AppRoutes {
   static String profile = '/profile';
   static String guards = '/guards';
 
+  // Shift Flow Routes
+  static String jobComplete = '/job-complete';
+  static String jobError = '/job-error';
+  static String closeShift = '/close-shift';
+  static String nextJob = '/next-job';
+  static String findJobs = '/find-jobs';
+
   static List<GetPage> routes = [
     GetPage<Route<dynamic>>(
       name: splashScreen,
-      page: () =>SplashScreen(),
+      page: () => SplashScreen(),
     ),
     GetPage<Route<dynamic>>(
       name: onboarding,
@@ -52,13 +61,38 @@ class AppRoutes {
       name: guards,
       page: () => const GuardsView(),
     ),
-
     GetPage(
       name: landing,
       page: () => LandingPage(
         // Check if arguments were passed & extract selectedIndex if present, otherwise default to 0
-        selectedIndex: (Get.arguments != null && Get.arguments['selectedIndex'] != null) ? Get.arguments['selectedIndex'] : 0,
+        selectedIndex:
+            (Get.arguments != null && Get.arguments['selectedIndex'] != null)
+                ? Get.arguments['selectedIndex']
+                : 0,
       ),
+    ),
+
+    // Shift Flow Routes
+    GetPage<Route<dynamic>>(
+      name: jobComplete,
+      page: () => JobStatusScreenSuccess(),
+    ),
+    GetPage<Route<dynamic>>(
+      name: jobError,
+      page: () => JobStatusScreenError(),
+    ),
+    GetPage<Route<dynamic>>(
+      name: closeShift,
+      page: () => ShiftCloseBottomSheet(
+          completionData: Get.arguments?['completionData']),
+    ),
+    GetPage<Route<dynamic>>(
+      name: nextJob,
+      page: () => LandingPage(selectedIndex: 0), // Navigate to jobs tab
+    ),
+    GetPage<Route<dynamic>>(
+      name: findJobs,
+      page: () => LandingPage(selectedIndex: 0), // Navigate to jobs tab
     ),
 
     // GetPage<Route<dynamic>>(
@@ -75,4 +109,11 @@ class AppRoutes {
   static String getSettingPageRoute() => settings;
   static String getProfilePageRoute() => profile;
   static String getGuardsPageRoute() => guards;
+
+  // Shift Flow Route Getters
+  static String getJobCompleteRoute() => jobComplete;
+  static String getJobErrorRoute() => jobError;
+  static String getCloseShiftRoute() => closeShift;
+  static String getNextJobRoute() => nextJob;
+  static String getFindJobsRoute() => findJobs;
 }

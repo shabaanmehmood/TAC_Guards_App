@@ -1,219 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'dummy_data.dart';
-import 'job_checkin_controller.dart';
+import 'package:tac/controllers/user_controller.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
-import 'package:tac/data/data/constants/app_spacing.dart';
-import 'package:tac/data/data/constants/app_typography.dart';
-import 'package:tac/modules/checkin/jobcheckin/job_checkin_screen.dart';
-import 'package:tac/widhets/common%20widgets/buttons/job_card.dart';
-import 'package:tac/widhets/common%20widgets/buttons/myJob_card.dart';
+import 'package:tac/modules/checkin/check_in_controller.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_checkin_controller.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_live_screen.dart';
+import 'package:tac/widhets/common%20overlays/uploadFile_overlay.dart';
+// your next screen
 
 class JobCheckinScreen extends StatelessWidget {
-  final controller = Get.put(JobCheckinController());
+  final controller = Get.put(CheckInController());
+  final UploadFileController uploadFileController =
+      Get.put(UploadFileController());
 
   JobCheckinScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final args = Get.arguments ?? {};
+    final String shiftId = args['shiftId'] ?? '';
+    final String latitude = args['latitude'] ?? '';
+    final String longitude = args['longitude'] ?? '';
+
     return Scaffold(
       backgroundColor: AppColors.kDarkestBlue,
       appBar: AppBar(
         backgroundColor: AppColors.kDarkestBlue,
         elevation: 0,
-        leading: IconButton(
-          icon: Image.asset(AppAssets.kBack, width: 24, height: 24),
-          onPressed: () => Navigator.of(context).pop(), // or Get.back()
-        ),
-        title: const Text(
-          'Job Details',
-          style: TextStyle(color: AppColors.kWhite, fontSize: 18),
-        ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(
-              child: Text(
-                'Need Support?',
-                style: TextStyle(color: AppColors.kSkyBlue),
-              ),
-            ),
-          )
-        ],
+        title: const Text('Check-in Selfie',
+            style: TextStyle(color: Colors.white)),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Job Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    dummyJob['title']!,
-                    style: const TextStyle(
-                      color: AppColors.kWhite,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Text(
-                  dummyJob['rate']!,
-                  style: const TextStyle(
-                    color: Colors.cyanAccent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Job Details Card
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1C1F2E),
-                borderRadius: BorderRadius.circular(12),
+            const Text(
+              "Take a Selfie for Verification",
+              style: TextStyle(
+                color: AppColors.kWhite,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(dummyJob['name']!,
-                          style: const TextStyle(
-                              color: AppColors.kWhite,
-                              fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 6),
-                      Text(dummyJob['role']!,
-                          style: const TextStyle(color: Colors.grey)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today,
-                          color: AppColors.ktextlight, size: 16),
-                      const SizedBox(width: 6),
-                      Text(dummyJob['date']!,
-                          style: const TextStyle(color: AppColors.ktextlight)),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.access_time,
-                          color: AppColors.ktextlight, size: 16),
-                      const SizedBox(width: 6),
-                      Text(dummyJob['time']!,
-                          style: const TextStyle(color: AppColors.ktextlight)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Text(
-                        "Job Details",
-                        style: TextStyle(
-                          color: AppColors.kSkyBlue,
-                          fontWeight: FontWeight.bold,
-                        ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "Please take a selfie to confirm your presence at the job location.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.kgrey),
+            ),
+            const SizedBox(height: 32),
+
+            // Selfie Avatar + Button
+            Obx(() => Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: AppColors.kgrey,
+                      backgroundImage: controller.selfieBase64.value != null
+                          ? MemoryImage(controller.convertBase64ToImage(
+                              controller.selfieBase64.value!))
+                          : null,
+                      child: controller.selfieBase64.value == null
+                          ? Image.asset(AppAssets.kCam, width: 40, height: 40)
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () async {
+                        String? selfie = await uploadFileController
+                            .showUploadFileBottomSheet(
+                          context,
+                          returnBase64: true,
+                          showPickFileOption: false,
+                          showPickGalleryOption: false,
+                        );
+
+                        if (selfie != null) {
+                          controller.selfieBase64.value = selfie;
+                          Get.snackbar("Selfie Captured",
+                              "Selfie successfully uploaded!",
+                              backgroundColor: Colors.green,
+                              colorText: Colors.white);
+                        } else {
+                          Get.snackbar(
+                              "Error", "Please take a selfie to proceed.",
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white);
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.kSkyBlue,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                       ),
-                      SizedBox(width: 8),
-                      Image.asset(
-                        AppAssets.kShare,
-                        width: 16,
-                        height: 16,
+                      child: Text(
+                        controller.selfieBase64.value != null
+                            ? "Retake Selfie"
+                            : "Take Selfie",
+                        style: const TextStyle(color: Colors.black),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.klightalert,
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded,
-                            size: 14, color: AppColors.kalert),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 5.0),
-                          child: const Text(
-                            "Job will start once you submit your selfie.",
-                            style: TextStyle(
-                                color: AppColors.kalert, fontSize: 13),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                )),
 
-            const SizedBox(height: 20),
+            const Spacer(),
 
-            // Selfie Check-in Card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1C1F2E),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Take a Selfie for Check-In Verification",
-                    style: TextStyle(
-                        color: AppColors.kWhite,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15),
+            // Confirm Check-in button
+            Obx(() => ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.kSkyBlue,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 40),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Please take a selfie to confirm your presence at the job location. Ensure your face is clearly visible.",
-                    style: TextStyle(color: AppColors.kgrey),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Color(0xFF2E3142),
-                          child: Image.asset(
-                            AppAssets.kCam,
-                            width: 40,
-                            height: 40,
-                          ),
+                  onPressed: controller.selfieBase64.value == null
+                      ? null
+                      : () async {
+                          controller.isLoading.value = true;
+                          Map<String, dynamic> m = await controller.checkIn(
+                            shiftId,
+                            Get.find<UserController>().userData.value!.id!,
+                            double.parse(latitude),
+                            double.parse(longitude),
+                            controller.selfieBase64.value!,
+                          );
+                          controller.isLoading.value = false;
+                          // After success
+                          // Remove 'arguments' from JobLiveScreen constructor
+                          Get.to(() => JobLiveScreen(Data: m));
+                        },
+                  child: controller.isLoading.value
+                      ? const CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2)
+                      : const Text(
+                          "Confirm Check-in",
+                          style: TextStyle(color: Colors.black, fontSize: 16),
                         ),
-                        const SizedBox(height: 12),
-                        Obx(() => ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.kSkyBlue,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 32, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10)),
-                              ),
-                              onPressed: controller.takeSelfie,
-                              child: Text(
-                                controller.isSelfieTaken.value
-                                    ? "Selfie Submitted"
-                                    : "Take Selfie",
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            )),
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
+                )),
           ],
         ),
       ),

@@ -6,25 +6,17 @@ import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/checkin/jobcheckin/job_status_screen.dart';
 import 'package:tac/modules/checkin/jobcheckin/shift_close_controller.dart';
-
-// class ShiftCloseController extends GetxController {
-//   var selectedReason = ''.obs;
-//   var customReason = ''.obs;
-
-//   final reasons = [
-//     'I have an emergency and need to leave',
-//     'I am feeling unwell and cannot continue',
-//     'There is a safety concern at the job site',
-//     'Other (please specify)',
-//   ];
-// }
+import 'job_live_controller.dart'; // Add this import
 
 class ShiftCloseBottomSheet extends StatelessWidget {
-  const ShiftCloseBottomSheet({super.key});
+  final Map<String, dynamic>? completionData;
+
+  const ShiftCloseBottomSheet({super.key, this.completionData});
 
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ShiftCloseController());
+    final jobLiveController = Get.find<JobLiveController>(); // Get the JobLiveController
     final screenWidth = MediaQuery.of(context).size.width;
 
     return SafeArea(
@@ -64,6 +56,36 @@ class ShiftCloseBottomSheet extends StatelessWidget {
               const Divider(color: Colors.white24, thickness: 1),
               SizedBox(height: AppSpacing.twelveVertical),
 
+              // Early Closure Warning
+              Container(
+                padding: EdgeInsets.all(AppSpacing.fifteenHorizontal),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, 
+                         color: Colors.orange, size: 20),
+                    SizedBox(width: AppSpacing.twelveHorizontal),
+                    Expanded(
+                      child: Text(
+                        "You are ending your shift before the scheduled time.",
+                        style: AppTypography.kLight14.copyWith(
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: AppSpacing.fifteenVertical),
+
+              // Early Closure Details
+              if (completionData != null) _buildEarlyClosureDetails(completionData!),
+              SizedBox(height: AppSpacing.fifteenVertical),
+
               // Reason Container
               Container(
                 padding: EdgeInsets.all(AppSpacing.fifteenHorizontal),
@@ -75,7 +97,7 @@ class ShiftCloseBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Please select your reason for ending the job",
+                      "Please select your reason for ending the job early",
                       style: AppTypography.kBold14
                           .copyWith(color: AppColors.kWhite),
                     ),
@@ -186,7 +208,10 @@ class ShiftCloseBottomSheet extends StatelessWidget {
                     width: screenWidth * 0.28,
                     height: 44,
                     child: OutlinedButton(
-                      onPressed: () => Get.back(),
+                      onPressed: () {
+                        jobLiveController.isNavigating.value = false; // Reset navigation state
+                        Get.back();
+                      },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.kPrimary),
                         shape: RoundedRectangleBorder(
@@ -206,25 +231,38 @@ class ShiftCloseBottomSheet extends StatelessWidget {
                   Expanded(
                     child: SizedBox(
                       height: 44,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Get.to(() => const JobStatusScreenSuccess());
-// or
-// Get.to(() => const JobStatusScreenError());
-                          // For Job Cancelled
-                        },
+                      child: Obx(() => ElevatedButton(
+                        onPressed: controller.selectedReason.value.isEmpty || jobLiveController.isNavigating.value
+                            ? null
+                            : () {
+                                _handleEndJob(controller, jobLiveController, completionData);
+                              },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
+                          backgroundColor: controller.selectedReason.value.isEmpty
+                              ? Colors.grey
+                              : AppColors.kPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Text(
-                          "End Job",
-                          style: AppTypography.kBold14
-                              .copyWith(color: AppColors.kBlack),
-                        ),
-                      ),
+                        child: jobLiveController.isNavigating.value
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                "End Job",
+                                style: AppTypography.kBold14.copyWith(
+                                  color: controller.selectedReason.value.isEmpty
+                                      ? Colors.white38
+                                      : AppColors.kBlack,
+                                ),
+                              ),
+                      )),
                     ),
                   ),
                 ],
@@ -234,5 +272,79 @@ class ShiftCloseBottomSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildEarlyClosureDetails(Map<String, dynamic> completionData) {
+    final calculatedData = completionData['calculatedData'] ?? {};
+    final earlyClosureDetails = calculatedData['earlyClosureDetails'] ?? {};
+    
+    final minutesEarly = earlyClosureDetails['minutesEarly'] ?? 0;
+    final formattedRemainingTime = earlyClosureDetails['formattedRemainingTime'] ?? "00:00";
+    final potentialEarningsLoss = earlyClosureDetails['potentialEarningsLoss'] ?? 0.0;
+
+    return Container(
+      padding: EdgeInsets.all(AppSpacing.fifteenHorizontal),
+      decoration: BoxDecoration(
+        color: AppColors.kJobCardColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Early Closure Details",
+            style: AppTypography.kBold14.copyWith(color: AppColors.kWhite),
+          ),
+          SizedBox(height: AppSpacing.twelveVertical),
+          _detailRow("Time Remaining", formattedRemainingTime),
+          _detailRow("Minutes Early", "$minutesEarly minutes"),
+          if (potentialEarningsLoss > 0)
+            _detailRow("Potential Earnings Loss", 
+                "\$${potentialEarningsLoss.toStringAsFixed(2)}"),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: AppTypography.kLight14.copyWith(color: AppColors.kgrey),
+          ),
+          Text(
+            value,
+            style: AppTypography.kBold14.copyWith(color: AppColors.kWhite),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleEndJob(ShiftCloseController controller, JobLiveController jobLiveController, Map<String, dynamic>? completionData) {
+    try {
+      // Use the JobLiveController to handle the early closure with reason
+      jobLiveController.handleEarlyClosureWithReason(
+        completionData ?? {},
+        controller.selectedReason.value,
+        controller.customReason.value,
+      );
+      
+      // Optional: Show confirmation message
+      Get.snackbar(
+        "Shift Ended",
+        "Your shift has been ended early",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e) {
+      // If there's an error, the JobLiveController will handle it
+      print("Error in bottom sheet: $e");
+    }
   }
 }
