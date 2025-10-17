@@ -783,7 +783,7 @@ class MyApIService {
   }
 
   Future<http.Response> checkOutGuard(String shiftId, String guardId,
-      String latitude, String longitude, String image) async {
+      String latitude, String longitude, String notes) async {
     var functionUrl = 'shiftAttendance/checkout';
 
     final response = await http.post(
@@ -797,7 +797,7 @@ class MyApIService {
         "guardId": guardId,
         "latitude": latitude,
         "longitude": longitude,
-        'image': image,
+        'notes': notes
       }),
     );
 
