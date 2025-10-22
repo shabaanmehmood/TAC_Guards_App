@@ -19,7 +19,6 @@ class SubmitReviewScreen extends StatelessWidget {
   final String contractorId;
   final String date;
 
-
   const SubmitReviewScreen({
     Key? key,
     required this.jobTitle,
@@ -85,7 +84,8 @@ class SubmitReviewScreen extends StatelessWidget {
             SizedBox(height: AppSpacing.tenVertical),
             Text(
               guardName,
-              style: AppTypography.kLight14.copyWith(color: AppColors.ktextlight),
+              style:
+                  AppTypography.kLight14.copyWith(color: AppColors.ktextlight),
             ),
             SizedBox(height: AppSpacing.fiveVertical),
             Row(
@@ -157,7 +157,8 @@ class SubmitReviewScreen extends StatelessWidget {
                         color: AppColors.kWhite,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Share your experience with this job and employer',
+                        hintText:
+                            'Share your experience with this job and employer',
                         hintStyle: AppTypography.kLight14.copyWith(
                           color: AppColors.kgrey,
                         ),
@@ -179,34 +180,34 @@ class SubmitReviewScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                  onPressed: () async {
-                    if (rating.value == 0.0) {
-                      Get.snackbar("Error", "Please provide a rating.");
-                      return;
-                    }
-                    if (reviewController.text.trim().isEmpty) {
-                      Get.snackbar("Error", "Please provide a review.");
-                      return;
-                    }
+                onPressed: () async {
+                  if (rating.value == 0.0) {
+                    Get.snackbar("Error", "Please provide a rating.");
+                    return;
+                  }
+                  if (reviewController.text.trim().isEmpty) {
+                    Get.snackbar("Error", "Please provide a review.");
+                    return;
+                  }
 
-                    final result = await jobController.submitReview(
-                      guardId: guardId,
-                      jobId: jobId,
-                      contractorId: contractorId,
-                      rating: rating.value.toInt(),
-                      review: reviewController.text.trim(),
-                    );
+                  final result = await jobController.submitReview(
+                    guardId: guardId,
+                    jobId: jobId,
+                    contractorId: contractorId,
+                    rating: rating.value.toInt(),
+                    review: reviewController.text.trim(),
+                  );
 
-                    Get.to(() => ReviewSubmittedScreen(
-                      resultStatus: result['status'],
-                      responseMessage: result['message'],
-                      jobTitle: jobTitle,
-                    ));
-                  },
-
+                  Get.to(() => ReviewSubmittedScreen(
+                        resultStatus: result['status'],
+                        responseMessage: result['message'],
+                        jobTitle: jobTitle,
+                      ));
+                },
                 child: Text(
                   'Submit Review',
-                  style: AppTypography.kBold16.copyWith(color: AppColors.kDarkBlue),
+                  style: AppTypography.kBold16
+                      .copyWith(color: AppColors.kDarkBlue),
                 ),
               ),
             ),
