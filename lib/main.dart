@@ -13,6 +13,7 @@ import 'package:tac/routes/app_routes.dart';
 import 'controllers/user_controller.dart';
 import 'data/data/constants/app_theme.dart';
 import './request_permissions.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 // Future<String> getInitialRoute() async {
@@ -107,6 +108,14 @@ class Main extends StatelessWidget {
         // initialRoute: AppRoutes.getOnboardingRoute(),
         initialRoute: AppRoutes.splashScreen,
         getPages: AppRoutes.routes,
+
+              theme: ThemeData(
+        fontFamily: GoogleFonts.outfit().fontFamily,
+        textTheme: GoogleFonts.outfitTextTheme(),
+        primaryTextTheme: GoogleFonts.outfitTextTheme(),
+        useMaterial3: true,
+      ),
+
       ),
     );
   }
