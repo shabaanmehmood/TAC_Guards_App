@@ -39,6 +39,14 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
+    signingConfigs {
+        debug {
+            storeFile file("guard.jks")
+            storePassword "12345678"
+            keyAlias "guard"
+            keyPassword "12345678"
+        }
+    }
 
     buildTypes {
         release {
