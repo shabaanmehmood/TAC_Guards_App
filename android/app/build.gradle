@@ -41,10 +41,10 @@ android {
     }
     signingConfigs {
         debug {
-            storeFile file("guard.jks")
-            storePassword "12345678"
-            keyAlias "guard"
-            keyPassword "12345678"
+            // storeFile file("guard.jks")
+            // storePassword "12345678"
+            // keyAlias "guard"
+            // keyPassword "12345678"
         }
     }
 

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:tac/modules/BiometricLockScreen/biometric_lock_screen.dart';
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/account/account.dart';
 import 'package:tac/modules/auth/sign_up_view.dart';
@@ -24,6 +25,7 @@ class AppRoutes {
   static String settings = '/settings';
   static String profile = '/profile';
   static String guards = '/guards';
+    static const biometricLock = '/biometric-lock';
 
   // Shift Flow Routes
   static String jobComplete = '/job-complete';
@@ -37,6 +39,13 @@ class AppRoutes {
       name: splashScreen,
       page: () => SplashScreen(),
     ),
+
+     // In your routes list:
+      GetPage(
+        name: biometricLock,
+        page: () => const BiometricLockScreen(),
+      ),
+  
     GetPage<Route<dynamic>>(
       name: onboarding,
       page: () => OnboardingView(),

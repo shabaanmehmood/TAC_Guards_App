@@ -32,6 +32,11 @@ class LogoutController extends GetxController {
         await prefs.remove(AppConstants.rememberEmailKey);
         await prefs.remove(AppConstants.rememberPasswordKey);
         await prefs.remove(AppConstants.loginTimeKey);
+
+         // ✅ Remove biometric login setting
+        await prefs.remove('biometric_login');
+        await prefs.remove('live_location');
+        
         userController.clearUser();
         SocketService().disconnect();
 
