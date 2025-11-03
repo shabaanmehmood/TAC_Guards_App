@@ -15,8 +15,11 @@ class GoogleAuthService {
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile', 'openid'],
+    // For iOS - use your REVERSED_CLIENT_ID
+    clientId: 'com.googleusercontent.apps.255779318742',
+    // Optional: For server authentication
     serverClientId:
-        '129556296565-kqkltik9ofd8hjhpre5ng0c1n7gcagou.apps.googleusercontent.com', // Your WEB client ID
+        '255779318742-s1nht5ir6gn7nkt5lp08atmpe4pg9vi1.apps.googleusercontent.com',
   );
 
   Future<void> signInWithGoogle() async {

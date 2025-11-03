@@ -366,6 +366,9 @@ class JobLiveScreen extends StatelessWidget {
           ),
           markers: mapController.markers.value,
           onMapCreated: (GoogleMapController googleMapController) {
+            print('🧭 onMapCreated called - controller available');
+            print(
+                '🧭 initial camera target: ${cameraTarget.latitude}, ${cameraTarget.longitude}, zoom: 15');
             mapController.setMapController(googleMapController);
 
             if (hasJobPath && mapController.mapController.value != null) {
@@ -482,75 +485,75 @@ class JobLiveScreen extends StatelessWidget {
     );
   }
 
- // ... (all other methods remain exactly the same)
+  // ... (all other methods remain exactly the same)
 
-Widget _buildBottomSection() {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      const Divider(color: AppColors.kinput),
-      Container(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
-        decoration: const BoxDecoration(
-          color: Color(0xFF0A0E21),
-          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Obx(() => Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: controller.checkboxValue.value,
-                      onChanged: (val) {
-                        controller.checkboxValue.value = val ?? false;
-                      },
-                      activeColor: Colors.lightBlueAccent,
-                    ),
-                    const Expanded(
-                      child: Text(
-                        "I confirm that I am intentionally ending my shift before the scheduled time. I understand that this action cannot be undone and may require supervisor approval.",
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
+  Widget _buildBottomSection() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Divider(color: AppColors.kinput),
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A0E21),
+            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Obx(() => Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Checkbox(
+                        value: controller.checkboxValue.value,
+                        onChanged: (val) {
+                          controller.checkboxValue.value = val ?? false;
+                        },
+                        activeColor: Colors.lightBlueAccent,
                       ),
-                    )
-                  ],
-                )),
-            const SizedBox(height: 12),
-            Obx(() => ElevatedButton(
-                  onPressed: controller.checkboxValue.value &&
-                          !controller.isNavigating.value
-                      ? () {
-                          print("🔄 Close My Shift button pressed");
-                          controller.handleManualShiftClosure();
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightBlueAccent,
-                    disabledBackgroundColor: AppColors.kSkyBlue,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    minimumSize: const Size.fromHeight(40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      const Expanded(
+                        child: Text(
+                          "I confirm that I am intentionally ending my shift before the scheduled time. I understand that this action cannot be undone and may require supervisor approval.",
+                          style: TextStyle(color: Colors.white70, fontSize: 10),
+                        ),
+                      )
+                    ],
+                  )),
+              const SizedBox(height: 12),
+              Obx(() => ElevatedButton(
+                    onPressed: controller.checkboxValue.value &&
+                            !controller.isNavigating.value
+                        ? () {
+                            print("🔄 Close My Shift button pressed");
+                            controller.handleManualShiftClosure();
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.lightBlueAccent,
+                      disabledBackgroundColor: AppColors.kSkyBlue,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      minimumSize: const Size.fromHeight(40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                  ),
-                  child: controller.isNavigating.value
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text("Close My Shift",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                )),
-          ],
+                    child: controller.isNavigating.value
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text("Close My Shift",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                  )),
+            ],
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 }

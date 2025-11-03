@@ -129,6 +129,35 @@ class MyApIService {
     return response;
   }
 
+  Future<http.Response> appleLogin({
+    required String? identityToken,
+    required String? authorizationCode,
+    required String fcmToken,
+    String? email,
+    String? firstName,
+    String? lastName,
+  }) async {
+    final Map<String, dynamic> requestBody = {
+      'fcm_token': fcmToken,
+      if (identityToken != null) 'identity_token': identityToken,
+      if (authorizationCode != null) 'authorization_code': authorizationCode,
+      if (email != null) 'email': email,
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
+    };
+
+    // Remove null values
+    requestBody.removeWhere((key, value) => value == null);
+
+    debugPrint("Apple Login Request: ${jsonEncode(requestBody)}");
+
+    return await http.post(
+      Uri.parse('$baseurl/auth/apple-login'), // Your Apple login endpoint
+
+      body: jsonEncode(requestBody),
+    );
+  }
+
   Future<http.Response> googleLogin(String token, String fcmToken) async {
     var functionUrl = 'auth/google-Auth';
     final response = await http.post(
@@ -262,7 +291,7 @@ class MyApIService {
   }
 
   // static const String imageBaseUrl = 'http://148.66.158.113:3006/';
-  static const String imageBaseUrl = 'http://148.66.158.113:3006/uploads';
+  static const String imageBaseUrl = 'http://148.66.158.113:3006/uploads/';
 
   static String? fullImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) return null;
