@@ -177,7 +177,17 @@ class MapController extends GetxController {
       }
 
       // Get location
-      final userLocation = await location.getLocation();
+      final locationFuture = location.getLocation();
+      final userLocation = await locationFuture.timeout(
+        Duration(seconds: 10),
+        onTimeout: () {
+          print("⏰ Location request timed out after 10 seconds");
+          throw TimeoutException('Location request timed out');
+        },
+      );
+
+      print(
+          "✅ Location obtained: ${userLocation.latitude}, ${userLocation.longitude}");
       _currentUserLocation =
           LatLng(userLocation.latitude ?? 0.0, userLocation.longitude ?? 0.0);
 
@@ -219,6 +229,7 @@ class MapController extends GetxController {
 
       // ✅ User marker
       if (_currentUserLocation != null) {
+        print("🎯 Creating user marker at: $_currentUserLocation");
         final userIcon = await _createUserMarker("assets/a.jpg");
         newMarkers.add(
           Marker(
@@ -234,27 +245,41 @@ class MapController extends GetxController {
       for (final JobNearby job in jobsResponse.data) {
         final double lat = double.tryParse(job.jobLatitude) ?? 0.0;
         final double lng = double.tryParse(job.jobLongitude) ?? 0.0;
-        if (lat == 0.0 && lng == 0.0) continue;
+        if (lat == 0.0 && lng == 0.0) {
+          print("⚠️ Skipping job ${job.jobId} - invalid coordinates");
+          continue;
+        }
 
         final LatLng position = LatLng(lat, lng);
+        print("📍 Creating marker for job ${job.jobId} at: $position");
 
         // ✅ Use API image if available, otherwise fallback to asset
         String contractorImageUrl =
             "assets/userpicture.jpg"; // Default fallback
 
         // Uncomment and use this section when you have API images
-        /*
-      if (job.contractorProfileImages.isNotEmpty) {
-        final mainImage = job.contractorProfileImages.firstWhere(
-          (image) => image.isMain == 1,
-          orElse: () => job.contractorProfileImages.first,
-        );
-        if (mainImage.url.isNotEmpty) {
-          contractorImageUrl = "$baseurl${mainImage.url}";
-        }
-      }
-      */
+        if (job.contractorProfileImages.isNotEmpty) {
+          final mainImage = job.contractorProfileImages.firstWhere(
+            (image) => image.isMain == 1,
+            orElse: () => job.contractorProfileImages.first,
+          );
+          if (mainImage.url.isNotEmpty) {
+            // Ensure correct path: always insert a slash between baseurl and image path
 
+            // Fix common typo: replace 'uploadsimages' with 'uploads/images'
+
+            contractorImageUrl = "${myApiService.baseurl}${mainImage.url}";
+            print(
+                "🖼️ Using API image for job ${job.jobId}: $contractorImageUrl");
+          } else {
+            print("⚠️ Job ${job.jobId} has empty image URL, using fallback");
+          }
+        } else {
+          print("ℹ️ Job ${job.jobId} has no profile images, using fallback");
+        }
+
+        print(
+            "🎨 Creating custom marker for job ${job.jobId} with image: $contractorImageUrl");
         final customMarkerIcon =
             await _createCustomMarker(contractorImageUrl, job.payPerHour);
 
@@ -267,10 +292,12 @@ class MapController extends GetxController {
             onTap: () => onMarkerTapped(job),
           ),
         );
+        print("✅ Marker created for job ${job.jobId}");
       }
 
       // ✅ Replace markers safely
       markers.value = newMarkers;
+      print("🗺️ Total markers on map: ${markers.length}");
     } catch (e) {
       print("❌ Error fetching jobs: $e");
     }
@@ -301,12 +328,13 @@ class MapController extends GetxController {
   }
 
   // --- ✅ Marker Drawing with Badge ---
-// --- ✅ Marker Drawing with Badge ---
   Future<BitmapDescriptor> _createImageMarker(
     String imageUrl, {
     double size = 150,
     String? overlayText,
   }) async {
+    print("🛠️ Creating image marker - URL: $imageUrl, Badge: $overlayText");
+
     ui.Image? finalImage;
     ui.Image? frameImage;
 
@@ -315,22 +343,28 @@ class MapController extends GetxController {
 
       // Try to load the image from API URL first
       if (imageUrl.startsWith('http')) {
+        print("🌐 Loading network image: $imageUrl");
         try {
           imageBytes =
               (await NetworkAssetBundle(Uri.parse(imageUrl)).load(imageUrl))
                   .buffer
                   .asUint8List();
+          print(
+              "✅ Network image loaded successfully, size: ${imageBytes.length} bytes");
         } catch (e) {
           print("❌ Failed to load network image: $e, falling back to asset");
           // Fallback to asset image if network image fails
           imageBytes = (await rootBundle.load("assets/userpicture.jpg"))
               .buffer
               .asUint8List();
+          print("🔄 Using fallback asset image");
         }
       } else {
         // It's already an asset path, try to load it
+        print("📁 Loading asset image: $imageUrl");
         try {
           imageBytes = (await rootBundle.load(imageUrl)).buffer.asUint8List();
+          print("✅ Asset image loaded successfully");
         } catch (e) {
           print(
               "❌ Failed to load asset image: $e, falling back to default asset");
@@ -338,9 +372,11 @@ class MapController extends GetxController {
           imageBytes = (await rootBundle.load("assets/userpicture.jpg"))
               .buffer
               .asUint8List();
+          print("🔄 Using default asset image");
         }
       }
 
+      print("🖼️ Decoding image with size: ${size.toInt()}x${size.toInt()}");
       final ui.Codec codec = await ui.instantiateImageCodec(
         imageBytes,
         targetWidth: size.toInt(),
@@ -348,6 +384,7 @@ class MapController extends GetxController {
       );
       final ui.FrameInfo frameInfo = await codec.getNextFrame();
       frameImage = frameInfo.image;
+      print("✅ Image decoded successfully");
 
       // Calculate dimensions - place badge BELOW the image
       final bool hasBadge = overlayText != null && overlayText.isNotEmpty;
@@ -355,6 +392,9 @@ class MapController extends GetxController {
       final double badgeWidth = size * 0.9;
       final double totalHeight = size + (hasBadge ? badgeHeight + 8 : 0);
       final double totalWidth = size;
+
+      print(
+          "📐 Creating canvas: ${totalWidth.toInt()}x${totalHeight.toInt()}, Has badge: $hasBadge");
 
       final ui.PictureRecorder recorder = ui.PictureRecorder();
       final Canvas canvas = Canvas(recorder);
@@ -365,6 +405,7 @@ class MapController extends GetxController {
       // Draw circular background for image
       final Paint circlePaint = Paint()..color = const Color(0xFF00D3FF);
       canvas.drawCircle(Offset(centerX, imageCenterY), size / 2, circlePaint);
+      print("🎨 Drew circular background");
 
       // Draw the image clipped to a circle
       final Rect imageRect = Rect.fromCircle(
@@ -381,6 +422,7 @@ class MapController extends GetxController {
         fit: BoxFit.cover,
       );
       canvas.restore();
+      print("🖼️ Drew and clipped image");
 
       // Draw price badge at the BOTTOM
       if (hasBadge) {
@@ -395,6 +437,7 @@ class MapController extends GetxController {
           RRect.fromRectAndRadius(badgeRect, const Radius.circular(8)),
           badgePaint,
         );
+        print("🔵 Drew price badge: $overlayText");
 
         // Create text paragraph
         final textStyle = ui.TextStyle(
@@ -410,7 +453,7 @@ class MapController extends GetxController {
           ),
         )
           ..pushStyle(textStyle)
-          ..addText(overlayText!);
+          ..addText(overlayText);
 
         final paragraph = paragraphBuilder.build();
         paragraph.layout(ui.ParagraphConstraints(width: badgeWidth - 8));
@@ -423,8 +466,10 @@ class MapController extends GetxController {
             badgeTop + (badgeHeight - paragraph.height) / 2,
           ),
         );
+        print("📝 Drew badge text: $overlayText");
       }
 
+      print("🖌️ Converting canvas to image...");
       finalImage = await recorder
           .endRecording()
           .toImage(totalWidth.toInt(), totalHeight.toInt());
@@ -435,7 +480,7 @@ class MapController extends GetxController {
         throw Exception('Failed to convert image to bytes');
       }
 
-      print("✅ Marker created with badge: $overlayText");
+      print("✅ Marker created successfully with badge: $overlayText");
       return BitmapDescriptor.fromBytes(pngBytes.buffer.asUint8List());
     } catch (e) {
       print("❌ Error creating marker: $e");
@@ -448,11 +493,14 @@ class MapController extends GetxController {
   }
 
   Future<BitmapDescriptor> _createUserMarker(String imageUrl) async {
+    print("👤 Creating user marker with image: $imageUrl");
     return await _createImageMarker(imageUrl, size: 160);
   }
 
   Future<BitmapDescriptor?> _createCustomMarker(
       String imageUrl, String payPerHour) async {
+    print(
+        "💼 Creating custom marker for £$payPerHour/hr with image: $imageUrl");
     return await _createImageMarker(
       imageUrl,
       size: 160,
@@ -462,6 +510,7 @@ class MapController extends GetxController {
 
   void setMapController(GoogleMapController controller) {
     mapController.value = controller;
+    print("🗺️ Map controller set");
     _applyMapStyle(); // Apply style when controller is set
 
     // Add retry mechanism to ensure style is applied
