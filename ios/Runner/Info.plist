@@ -2,67 +2,176 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSLocationWhenInUseUsageDescription</key>
-<string>This app needs access to your location while the app is in use.</string>
+    <!-- Location Permissions -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to your location while the app is in use to show your position on the map and track job locations.</string>
 
-<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>This app needs access to your location even in background.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app needs access to your location even in background to track jobs and provide location updates.</string>
 
-<key>NSLocationAlwaysUsageDescription</key>
-<string>This app needs access to your location to track jobs in background.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to your location to track jobs in background.</string>
 
-<key>UIBackgroundModes</key>
-<array>
-    <string>location</string>
-</array>
+    <!-- Background Modes -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+        <string>fetch</string>
+        <string>processing</string>
+    </array>
 
+    <!-- Google Maps API Key (injected from xcconfig) -->
     <key>GOOGLE_MAPS_API_KEY</key>
-    <string>$(GOOGLE_MAPS_API_KEY)</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Guard</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>Guard</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
 
-	<key>NSFaceIDUsageDescription</key>
-    <string>We need to use Face ID to authenticate you</string>
+    <string>AIzaSyA9QPOgF3bbgqzhcb-S-WXBeIr4XRdfZto</string>
+
+    <!-- 🔥 REQUIRED: Google Maps iOS SDK Permissions -->
+    <key>NSLocationDefaultAccuracyReduced</key>
+    <false/>
+    
+    <!-- Camera & Photo Library Permissions (for map markers) -->
+    <key>NSCameraUsageDescription</key>
+    <string>This app requires camera access to take photos for job reports and location verification.</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to your photo library to attach images to job reports and location documentation.</string>
+
+    <!-- 🔐 GOOGLE SIGN-IN CONFIGURATION -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>google.signin</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <!-- ✅ USING YOUR EXACT REVERSED_CLIENT_ID FROM GoogleService-Info.plist -->
+                <!-- Format: com.googleusercontent.apps.255779318742 -->
+                <string>com.googleusercontent.apps.255779318742</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>apple.signin</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <!-- Your App Bundle ID for Apple Sign-In -->
+                <string>com.example.tac</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- 🔐 APPLE SIGN-IN CONFIGURATION -->
+    <key>com.apple.developer.applesignin</key>
+    <array>
+        <string>Default</string>
+    </array>
+
+    <!-- 🔍 QUERY SCHEMES FOR GOOGLE SIGN-IN -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <!-- For Google Sign-In -->
+        <string>google</string>
+        <string>googlechromes</string>
+        <string>com.google.gppconsent</string>
+        <string>com.google.gppconsent.2.2</string>
+        <string>com.google.gppconsent.2.4</string>
+        <!-- For Apple Sign-In -->
+        <string>appleid</string>
+    </array>
+
+    <!-- Network Permissions (required for Google Maps & Sign-In) -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>googleapis.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <key>google.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <key>gstatic.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <!-- Add these for Google Sign-In -->
+            <key>accounts.google.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+            <key>www.googleapis.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSThirdPartyExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+        </dict>
+    </dict>
+
+    <!-- App Basic Configuration -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Guard</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>Guard</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
 </dict>
 </plist>
