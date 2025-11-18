@@ -538,21 +538,21 @@ final originalFile = File(file.path);
                   // Upload from Gallery option
                   _buildUploadOption("Upload from Gallery", () async {
                     final result = await controller.pickImageFromGallery(returnBase64: returnBase64);
-                    Navigator.of(context).pop(result);
+                    // Navigator.of(context).pop(result);
                   }),
                 ],
               Divider(color: AppColors.kSkyBlue),
               // Upload from Camera option
               _buildUploadOption("Upload from Camera", () async {
                 final result = await controller.pickImageFromCamera(returnBase64: returnBase64);
-                Navigator.of(context).pop(result);
+                // Navigator.of(context).pop(result);
               }),
               if(showPickFileOption == true)
                 ...[
                   Divider(color: AppColors.kSkyBlue),
                   _buildUploadOption("Pick a File", () async {
                     final result = await controller.pickFile(returnBase64: returnBase64);
-                    Navigator.of(context).pop(result);
+                    // Navigator.of(context).pop(result);
                   }),
                 ]
             ],

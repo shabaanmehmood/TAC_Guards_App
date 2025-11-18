@@ -357,7 +357,8 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AccountController controller = Get.put(AccountController());
-    final userController = Get.find<UserController>().obs;
+    // final userController = Get.find<UserController>().obs;
+    final userController = Get.put(UserController());
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
@@ -381,25 +382,49 @@ class AccountScreen extends StatelessWidget {
                 Row(
                   children: [
                     // Square Profile Image
-                    Obx(() {
-                      final imagePath = userController
-                          .value.userData.value?.profileImages?.first.imageUrl;
-                      final imageUrl = MyApIService.fullImageUrl(imagePath);
-                      return Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          image: DecorationImage(
-                            image: imageUrl != null
-                                ? NetworkImage(imageUrl)
-                                : AssetImage(AppAssets.kUserPicture)
-                                    as ImageProvider,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    }),
+                    // Obx(() {
+                    //   final imagePath = userController
+                    //       .value.userData.value?.profileImages?.first.imageUrl;
+                    //   final imageUrl = MyApIService.fullImageUrl(imagePath);
+                    //   return Container(
+                    //     width: 34,
+                    //     height: 34,
+                    //     decoration: BoxDecoration(
+                    //       borderRadius: BorderRadius.circular(4),
+                    //       image: DecorationImage(
+                    //         image: imageUrl != null
+                    //             ? NetworkImage(imageUrl)
+                    //             : AssetImage(AppAssets.kUserPicture)
+                    //                 as ImageProvider,
+                    //         fit: BoxFit.cover,
+                    //       ),
+                    //     ),
+                    //   );
+                    // }),
+
+                       Builder(
+        builder: (_) {
+          final profileImages = userController.userData.value?.profileImages;
+          final mainImage = profileImages?.firstWhereOrNull((img) => img.isMain == true);
+          final imageUrl = (mainImage?.imageUrl != null && mainImage!.imageUrl!.isNotEmpty)
+              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
+              : null;
+
+          return Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: imageUrl != null
+                    ? NetworkImage(imageUrl)
+                    :  AssetImage(AppAssets.kUserPicture) as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+          );
+        },
+      ),
                     const SizedBox(width: 12),
                     Text(
                       'Account',
@@ -460,7 +485,7 @@ class AccountScreen extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              userController.value.userData.value?.fullName ??
+                              userController.userData.value?.fullName ??
                                   '',
                               style: GoogleFonts.outfit(
                                   color: AppColors.kWhite,
@@ -476,7 +501,7 @@ class AccountScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                userController.value.userData.value
+                                userController.userData.value
                                         ?.professionalBadge ??
                                     'Leader',
                                 style: GoogleFonts.outfit(
@@ -487,7 +512,7 @@ class AccountScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          "Security Professional · ${userController.value.userData.value?.level}",
+                          "Security Professional · ${userController.userData.value?.level}",
                           style: GoogleFonts.outfit(
                               color: AppColors.ktextlight, fontSize: 13),
                         ),
