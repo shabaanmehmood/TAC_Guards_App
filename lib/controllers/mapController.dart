@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:tac/dataproviders/api_service.dart';
 import 'package:tac/models/nearbyjob.dart';
+import 'package:tac/controllers/user_controller.dart';
 
 class MapController extends GetxController {
   var markers = <Marker>{}.obs;
@@ -22,6 +23,7 @@ class MapController extends GetxController {
   LatLng? _currentUserLocation;
   final Rx<JobNearby?> selectedJob = Rx<JobNearby?>(null);
   CameraPosition? _lastCameraPosition;
+  final userController = Get.find<UserController>();
 
   @override
   void onInit() {
@@ -226,11 +228,20 @@ class MapController extends GetxController {
       print('API response: ${jobsResponse.data.length} jobs found');
 
       final newMarkers = <Marker>{};
-
+      String imgurl = 'assets/a.jpg';
       // ✅ User marker
       if (_currentUserLocation != null) {
         print("🎯 Creating user marker at: $_currentUserLocation");
-        final userIcon = await _createUserMarker("assets/a.jpg");
+
+        if (userController.userData.value != null) {
+          final userData = userController.userData.value!;
+
+          imgurl = userData.profileImages?.isNotEmpty == true
+              ? MyApIService.imageBaseUrl +
+                  userController.userData.value!.profileImages!.last.imageUrl!
+              : "assets/a.jpg";
+        }
+        final userIcon = await _createUserMarker(imgurl);
         newMarkers.add(
           Marker(
             markerId: const MarkerId('user_location'),
@@ -268,7 +279,7 @@ class MapController extends GetxController {
 
             // Fix common typo: replace 'uploadsimages' with 'uploads/images'
 
-            contractorImageUrl = "${myApiService.baseurl}${mainImage.url}";
+            contractorImageUrl = "${MyApIService.imageBaseUrl}${mainImage.url}";
             print(
                 "🖼️ Using API image for job ${job.jobId}: $contractorImageUrl");
           } else {
