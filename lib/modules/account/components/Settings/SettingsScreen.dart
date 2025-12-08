@@ -269,8 +269,6 @@
 //   }
 // }
 
-
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:location/location.dart';
@@ -304,40 +302,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // }
 
   @override
-void initState() {
-  super.initState();
-  _loadBiometricSetting();
-  _loadLocationSetting(); // ✅ new
-}
+  void initState() {
+    super.initState();
+    _loadBiometricSetting();
+    _loadLocationSetting(); // ✅ new
+  }
 
 // ✅ Load location toggle from SharedPreferences
-Future<void> _loadLocationSetting() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  setState(() {
-    liveLocation = prefs.getBool('live_location') ?? false;
-  });
-}
+  Future<void> _loadLocationSetting() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      liveLocation = prefs.getBool('live_location') ?? false;
+    });
+  }
 
 // ✅ Save location toggle to SharedPreferences
-Future<void> _saveLocationSetting(bool value) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('live_location', value);
-  setState(() {
-    liveLocation = value;
-  });
+  Future<void> _saveLocationSetting(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('live_location', value);
+    setState(() {
+      liveLocation = value;
+    });
 
-  if (value) {
-    final location = Location();
-    bool serviceEnabled = await location.serviceEnabled();
-    if (!serviceEnabled) {
-      await location.requestService();
+    if (value) {
+      final location = Location();
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        await location.requestService();
+      }
+      _showSnackbar('Live location enabled', isError: false);
+    } else {
+      _showSnackbar('Live location disabled', isError: false);
     }
-    _showSnackbar('Live location enabled', isError: false);
-  } else {
-    _showSnackbar('Live location disabled', isError: false);
   }
-}
-
 
   // ✅ Load biometric setting from SharedPreferences
   Future<void> _loadBiometricSetting() async {
@@ -368,15 +365,15 @@ Future<void> _saveLocationSetting(bool value) async {
     // Save to SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('biometric_login', value);
-    
+
     setState(() {
       biometricLogin = value;
     });
-    
+
     _showSnackbar(
-      value 
-        ? 'Biometric login enabled successfully' 
-        : 'Biometric login disabled',
+      value
+          ? 'Biometric login enabled successfully'
+          : 'Biometric login disabled',
       isError: false,
     );
   }
@@ -385,7 +382,8 @@ Future<void> _saveLocationSetting(bool value) async {
   Future<bool> _checkBiometricSupport() async {
     try {
       final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
-      final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+      final bool canAuthenticate =
+          canAuthenticateWithBiometrics || await auth.isDeviceSupported();
       return canAuthenticate;
     } on PlatformException catch (e) {
       debugPrint('⚠️ Error checking biometric support: $e');
@@ -505,12 +503,12 @@ Future<void> _saveLocationSetting(bool value) async {
                 // ),
 
                 _buildSwitchCard(
-                    icon: Icons.location_on_outlined,
-                    title: 'Live Location',
-                    subtitle: liveLocation ? 'Enabled' : 'Disabled',
-                    value: liveLocation,
-                    onChanged: (val) => _saveLocationSetting(val),
-                  ),
+                  icon: Icons.location_on_outlined,
+                  title: 'Live Location',
+                  subtitle: liveLocation ? 'Enabled' : 'Disabled',
+                  value: liveLocation,
+                  onChanged: (val) => _saveLocationSetting(val),
+                ),
 
                 const SizedBox(height: 12),
                 _buildNavigationCard(
@@ -565,7 +563,7 @@ Future<void> _saveLocationSetting(bool value) async {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "© 2024 TAC Solutions. All rights reserved.",
+                    "© 2024 Control1 Security. All rights reserved.",
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.kgrey,

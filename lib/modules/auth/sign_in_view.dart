@@ -975,7 +975,7 @@ class SignInView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  'Powered by TAC Solutions',
+                  'Powered by Control1 Security',
                   style:
                       AppTypography.customkLight14.copyWith(color: Colors.grey),
                 ),
