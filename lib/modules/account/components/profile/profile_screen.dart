@@ -20,9 +20,7 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   final UserController userController = Get.put(UserController());
-  
 
   @override
   void initState() {
@@ -39,20 +37,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      backgroundColor: AppColors.kDarkestBlue,
-      appBar: AppBar(
         backgroundColor: AppColors.kDarkestBlue,
-        title: const Text("Profile",
-            style: TextStyle(color: AppColors.kWhite, fontSize: 20)),
-        // centerTitle: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.kWhite),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          backgroundColor: AppColors.kDarkestBlue,
+          title: const Text("Profile",
+              style: TextStyle(color: AppColors.kWhite, fontSize: 20)),
+          // centerTitle: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.kWhite),
+            onPressed: () => Get.back(),
+          ),
         ),
-      ),
-      body: Obx(
+        body: Obx(
           () => SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -83,29 +80,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       //     ),
                       //   );
                       // }),
-                       Builder(
-        builder: (_) {
-          final profileImages = userController.userData.value?.profileImages;
-          final mainImage = profileImages?.firstWhereOrNull((img) => img.isMain == true);
-          final imageUrl = (mainImage?.imageUrl != null && mainImage!.imageUrl!.isNotEmpty)
-              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
-              : null;
+                      Builder(
+                        builder: (_) {
+                          final profileImages =
+                              userController.userData.value?.profileImages;
+                          final mainImage = profileImages
+                              ?.firstWhereOrNull((img) => img.isMain == true);
+                          final imageUrl = (mainImage?.imageUrl != null &&
+                                  mainImage!.imageUrl!.isNotEmpty)
+                              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
+                              : null;
 
-          return Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: imageUrl != null
-                    ? NetworkImage(imageUrl)
-                    :  AssetImage(AppAssets.kUserPicture) as ImageProvider,
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
-        },
-      ),
+                          return Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                image: imageUrl != null
+                                    ? NetworkImage(imageUrl)
+                                    : AssetImage(AppAssets.kUserPicture)
+                                        as ImageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                       const SizedBox(width: 12),
                       const Expanded(
                         child: Column(
@@ -130,8 +131,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       TextButton(
                         onPressed: () async {
-                          final UploadFileController uploadFileController = Get.put(UploadFileController());
-                          String? base64image = await uploadFileController.showUploadFileBottomSheet(context, returnBase64: true, showPickFileOption: false);
+                          final UploadFileController uploadFileController =
+                              Get.put(UploadFileController());
+                          String? base64image = await uploadFileController
+                              .showUploadFileBottomSheet(context,
+                                  returnBase64: true,
+                                  showPickFileOption: false);
                           if (base64image != null) {
                             await uploadFileController.updateFile(base64image);
                           }
@@ -156,8 +161,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 GestureDetector(
                   onTap: () => Get.to(() => DocumentScreen()),
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: AppColors.kJobCardColor,
                       borderRadius: BorderRadius.circular(12),
@@ -197,13 +202,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 buildDualColumnInfoSection(
                   title: "Personal Information",
                   info: [
-                    {"label": "Full Name", "value": userController.userData.value?.fullName ?? "-"},
-                    {"label": "Email Address", "value": userController.userData.value?.email ?? "-"},
-                    {"label": "Gender", "value": userController.userData.value?.gender ?? "-"},
-                    {"label": "Date of Birth", "value": userController.userData.value?.dob ?? "-"},
-                    {"label": "Contact Number", "value": userController.userData.value?.phone ?? "-"},
-                    {"label": "Postal Code", "value": userController.userData.value?.postalCode ?? "-"},
-                    {"label": "Residential Address", "value": userController.userData.value?.postalAddress ?? "-"},
+                    {
+                      "label": "Full Name",
+                      "value": userController.userData.value?.fullName ?? "-"
+                    },
+                    {
+                      "label": "Email Address",
+                      "value": userController.userData.value?.email ?? "-"
+                    },
+                    {
+                      "label": "Gender",
+                      "value": userController.userData.value?.gender ?? "-"
+                    },
+                    {
+                      "label": "Date of Birth",
+                      "value": userController.userData.value?.dob ?? "-"
+                    },
+                    {
+                      "label": "Contact Number",
+                      "value": userController.userData.value?.phone ?? "-"
+                    },
+                    {
+                      "label": "Postal Code",
+                      "value": userController.userData.value?.postalCode ?? "-"
+                    },
+                    {
+                      "label": "Address",
+                      "value":
+                          userController.userData.value?.postalAddress ?? "-"
+                    },
                   ],
                   onEdit: () {
                     Get.to(() => const EditPersonalInfoScreen())?.then((_) {
@@ -217,18 +244,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 buildDualColumnInfoSection(
                   title: "Professional Information",
                   info: [
-                    {"label": "Year of Experience", "value": userController.userData.value?.personalDetails?.yearsOfExperience.toString() ?? "-"},
-                    {"label": "Level", "value": userController.userData.value?.level ?? "-"},
+                    {
+                      "label": "Year of Experience",
+                      "value": userController.userData.value?.personalDetails
+                              ?.yearsOfExperience
+                              .toString() ??
+                          "-"
+                    },
+                    {
+                      "label": "Level",
+                      "value": userController.userData.value?.level ?? "-"
+                    },
                     {
                       "label": "Security Licence Number",
-                      "value": userController.userData.value?.personalDetails?.licenseNumber.toString() ?? "-"
+                      "value": userController
+                              .userData.value?.personalDetails?.licenseNumber
+                              .toString() ??
+                          "-"
                     },
-                    {"label": "Licence Expiry Date", "value": userController.userData.value?.personalDetails?.licenseExpiryDate.toString() ?? '-'},
-                    {"label": "ABN", "value": userController.userData.value?.personalDetails?.abn.toString() ?? "-"},
-                    {"label": "Professional Badge", "value": userController.userData.value?.professionalBadge ?? "-"},
+                    {
+                      "label": "Licence Expiry Date",
+                      "value": userController.userData.value?.personalDetails
+                              ?.licenseExpiryDate
+                              .toString() ??
+                          '-'
+                    },
+                    {
+                      "label": "ABN",
+                      "value": userController
+                              .userData.value?.personalDetails?.abn
+                              .toString() ??
+                          "-"
+                    },
+                    {
+                      "label": "Professional Badge",
+                      "value":
+                          userController.userData.value?.professionalBadge ??
+                              "-"
+                    },
                     {
                       "label": "Preferred Work Location",
-                      "value": userController.userData.value?.personalDetails?.preferredLocationAddresses.toString() ?? "-"
+                      "value": userController.userData.value?.personalDetails
+                              ?.preferredLocationAddresses
+                              ?.join(", ") ?? // Join with comma and space
+                          "-"
                     },
                   ],
                   // onEdit: () => Get.to(() => const EditProfessionalInfoScreen()),
@@ -241,8 +300,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-      )
-    );
+        ));
   }
 
   Widget buildDualColumnInfoSection({

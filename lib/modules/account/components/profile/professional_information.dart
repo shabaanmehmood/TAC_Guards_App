@@ -42,7 +42,9 @@ class _EditProfessionalInfoScreenState
         licenseNumber: licenseNumber.text,
         licenseExpiryDate: expiryDate.text,
         abn: abnNumber.text,
-        preferredLocationAddresses: [preferredWorkLocation.text],
+        preferredLocationAddresses: preferredWorkLocation.text.isNotEmpty
+            ? [preferredWorkLocation.text]
+            : null, // or [] for empty list
       );
 
       final response = await apiService.updatePersonalInfo(
@@ -117,7 +119,10 @@ class _EditProfessionalInfoScreenState
     licenseNumber.text = userData!.masterSecurityLicense ?? '';
     expiryDate.text = userData!.personalDetails?.licenseExpiryDate ?? '';
     abnNumber.text = userData!.personalDetails?.abn ?? '';
-    preferredWorkLocation.text = userData!.personalDetails?.preferredLocationAddresses.toString() ?? '';
+    preferredWorkLocation.text = userController
+            .userData.value?.personalDetails?.preferredLocationAddresses
+            ?.join(", ") ?? // Join with comma and space
+        "-";
   }
 
   @override

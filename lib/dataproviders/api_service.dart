@@ -15,7 +15,6 @@ import '../models/userupdate_model.dart';
 import '../modules/Messages/socket_file.dart';
 
 class MyApIService {
-
   Future<void> sendLocationToApi(String shiftId, String guardId, String jobId,
       double latitude, double longitude) async {
     final payload = {
@@ -293,10 +292,10 @@ class MyApIService {
 
   // static const String imageBaseUrl = 'http://148.66.158.113:3006/';
   static const String imageBaseUrl = 'http://148.66.158.113:3006/uploads/';
-
+  static const String imageBaseUrl1 = 'http://148.66.158.113:3006/uploads';
   static String? fullImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) return null;
-    return '$imageBaseUrl$imagePath';
+    return '$imageBaseUrl1$imagePath';
   }
 
   Future<http.Response> addBankDetails(

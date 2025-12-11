@@ -319,21 +319,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
 // ✅ Save location toggle to SharedPreferences
   Future<void> _saveLocationSetting(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('live_location', value);
-    setState(() {
-      liveLocation = value;
-    });
 
-    if (value) {
-      final location = Location();
-      bool serviceEnabled = await location.serviceEnabled();
+    // If turning OFF, just save and show message
+    if (!value) {
+      await prefs.setBool('live_location', value);
+      setState(() {
+        liveLocation = value;
+      });
+      _showSnackbar('Live location disabled', isError: false);
+      return;
+    }
+
+    // If turning ON, check service and show dialog
+    final location = Location();
+    bool serviceEnabled = await location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
       if (!serviceEnabled) {
-        await location.requestService();
+        // Service not enabled, keep toggle off
+        setState(() {
+          liveLocation = false;
+        });
+        _showSnackbar('Location service not enabled', isError: true);
+        return;
       }
+    }
+
+    // Show permission dialog
+    bool userAccepted = await _showLocationPermissionDialog();
+
+    if (userAccepted) {
+      // User clicked "Enable" - save and show success
+      await prefs.setBool('live_location', true);
+      setState(() {
+        liveLocation = true;
+      });
       _showSnackbar('Live location enabled', isError: false);
     } else {
-      _showSnackbar('Live location disabled', isError: false);
+      // User clicked "No Thanks" - DON'T save, keep toggle OFF
+      await prefs.setBool('live_location', false);
+      setState(() {
+        liveLocation = false;
+      });
+      // DON'T show success message
     }
+  }
+
+  Future<bool> _showLocationPermissionDialog() async {
+    bool? result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.kJobCardColor, // Changed background color
+        title: Text(
+          "Enable Live Location?",
+          style: TextStyle(
+            color: Colors.white, // Title text color for contrast
+          ),
+        ),
+        content: Text(
+          "Allow location access to see nearby guards and jobs on the map. This helps in tracking and navigation.",
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.9), // Content text color
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false); // No Thanks
+            },
+            child: Text(
+              "No Thanks",
+              style: TextStyle(color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, true); // Enable
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.kSkyBlue, // Button background color
+              foregroundColor: Colors.white, // Button text color
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            ),
+            child: Text(
+              "Enable",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return result ?? false;
   }
 
   // ✅ Load biometric setting from SharedPreferences
@@ -503,12 +583,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // ),
 
                 _buildSwitchCard(
-                  icon: Icons.location_on_outlined,
-                  title: 'Live Location',
-                  subtitle: liveLocation ? 'Enabled' : 'Disabled',
-                  value: liveLocation,
-                  onChanged: (val) => _saveLocationSetting(val),
-                ),
+                    icon: Icons.location_on_outlined,
+                    title: 'Live Location',
+                    subtitle: liveLocation ? 'Enabled' : 'Disabled',
+                    value: liveLocation,
+                    onChanged: (val) {
+                      _saveLocationSetting(val);
+                    }),
 
                 const SizedBox(height: 12),
                 _buildNavigationCard(
