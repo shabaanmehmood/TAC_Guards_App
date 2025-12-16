@@ -327,7 +327,8 @@ class SignUpView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.twentyVertical),
+                      SizedBox(height: AppSpacing.fiftyVertical),
+                      SizedBox(height: AppSpacing.thirtyVertical),
                       Text(
                         'Powered by Control1 Security',
                         style:

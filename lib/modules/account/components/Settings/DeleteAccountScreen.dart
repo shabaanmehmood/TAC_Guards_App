@@ -105,7 +105,7 @@ class DeleteAccountScreen extends StatelessWidget {
                             child: Text(
                               "This action is irreversible. All your data, including account information, preferences, and history, will be permanently deleted.",
                               style: TextStyle(
-                                  color: AppColors.kRed, fontSize: 12),
+                                  color: AppColors.kWhite, fontSize: 12),
                             ),
                           ),
                         ],
@@ -236,7 +236,7 @@ class DeleteAccountScreen extends StatelessWidget {
                       ),
                       child: const Text(
                         "Delete Account",
-                        style: TextStyle(color: AppColors.kRed),
+                        style: TextStyle(color: AppColors.kWhite),
                       ),
                     ),
                   ),

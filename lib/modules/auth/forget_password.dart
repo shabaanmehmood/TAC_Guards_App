@@ -249,7 +249,6 @@
 //   }
 // }
 
-
 // FIXED FORGET PASSWORD SCREEN
 import 'dart:ffi';
 
@@ -274,14 +273,13 @@ import '../onboarding/components/custom_indicator.dart';
 import '../onboarding/components/onboarding_card.dart';
 
 class ForgetPasswordViewController extends GetxController {
-
   TextEditingController emailController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   //send OTP
   Future<void> submitForgetPassword() async {
     if (formKey.currentState!.validate()) {
       final apiService = MyApIService(); // create instance
-      try{
+      try {
         final response = await apiService.sendOtp(
           emailController.text.toString(),
         );
@@ -293,8 +291,7 @@ class ForgetPasswordViewController extends GetxController {
           debugPrint("data from API ${response.body}");
           debugPrint('Error login failed: ${response.body}');
         }
-      }
-      catch(e){
+      } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
       }
     }
@@ -302,14 +299,15 @@ class ForgetPasswordViewController extends GetxController {
 
   //Enter OTP Screen usage things
   var otpCode = ''.obs; // Holds the entered OTP
-  List<TextEditingController> otpControllers = List.generate(4, (index) => TextEditingController());
+  List<TextEditingController> otpControllers =
+      List.generate(4, (index) => TextEditingController());
   GlobalKey<FormState> otpFormKey = GlobalKey<FormState>();
 
   //verify OTP
   Future<void> verifyOtp() async {
     if (formKey.currentState!.validate()) {
       final apiService = MyApIService(); // create instance
-      try{
+      try {
         final response = await apiService.verifyOtp(
           emailController.text.toString(),
           otpControllers.map((controller) => controller.text).join().toString(),
@@ -322,8 +320,7 @@ class ForgetPasswordViewController extends GetxController {
           debugPrint("data from API ${response.body}");
           debugPrint('Error verify Otp failed: ${response.body}');
         }
-      }
-      catch(e){
+      } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
       }
     }
@@ -337,6 +334,7 @@ class ForgetPasswordViewController extends GetxController {
   void togglePasswordView() {
     setPasswordVisible.value = !setPasswordVisible.value;
   }
+
   void toggleConfirmPasswordView() {
     setConfirmPasswordVisible.value = !setConfirmPasswordVisible.value;
   }
@@ -348,7 +346,7 @@ class ForgetPasswordViewController extends GetxController {
   Future<void> resetPassword() async {
     if (formKey.currentState!.validate()) {
       final apiService = MyApIService(); // create instance
-      try{
+      try {
         final response = await apiService.resetPassword(
           emailController.text.toString(),
           passwordController.text.toString(),
@@ -362,33 +360,37 @@ class ForgetPasswordViewController extends GetxController {
           debugPrint("data from API ${response.body}");
           debugPrint('Error Reset Password failed: ${response.body}');
         }
-      }
-      catch(e){
+      } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
       }
     }
   }
-
 }
 
 class ForgetPasswordView extends StatelessWidget {
-  final ForgetPasswordViewController controller = Get.put(ForgetPasswordViewController());
+  final ForgetPasswordViewController controller =
+      Get.put(ForgetPasswordViewController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevent layout changes when keyboard appears
+      resizeToAvoidBottomInset:
+          false, // Prevent layout changes when keyboard appears
       backgroundColor: AppColors.kDarkBlue,
-      body: SafeArea( // Use SafeArea to respect device safe areas
+      body: SafeArea(
+        // Use SafeArea to respect device safe areas
         child: Column(
           children: [
             // Main scrollable content
             Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.twentyHorizontal),
+                padding: EdgeInsets.symmetric(
+                    horizontal: AppSpacing.twentyHorizontal),
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom, // Adjust for keyboard
+                    bottom: MediaQuery.of(context)
+                        .viewInsets
+                        .bottom, // Adjust for keyboard
                   ),
                   child: Column(
                     children: [
@@ -403,9 +405,9 @@ class ForgetPasswordView extends StatelessWidget {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      
+
                       SizedBox(height: Get.height * 0.05),
-                      
+
                       // Form section
                       Form(
                         key: controller.formKey,
@@ -413,35 +415,39 @@ class ForgetPasswordView extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                SizedBox(width: AppSpacing.tenHorizontal,),
+                                SizedBox(
+                                  width: AppSpacing.tenHorizontal,
+                                ),
                                 CustomIconButton(
-                                  onTap: (){
+                                  onTap: () {
                                     Get.back(canPop: true);
                                   },
                                 ),
-                                SizedBox(width: AppSpacing.twentyHorizontal,),
-                                Text(
-                                    "Forget Password",
-                                    style: AppTypography.kBold32.copyWith(
-                                        color: AppColors.kWhite
-                                    )
+                                SizedBox(
+                                  width: AppSpacing.twentyHorizontal,
                                 ),
+                                Text("Forget Password",
+                                    style: AppTypography.kBold32
+                                        .copyWith(color: AppColors.kWhite)),
                               ],
                             ),
-                            SizedBox(height: AppSpacing.tenVertical,),
+                            SizedBox(
+                              height: AppSpacing.tenVertical,
+                            ),
                             Row(
                               children: [
-                                SizedBox(width: AppSpacing.tenHorizontal,),
-                                Text(
-                                    "Reset your password.",
-                                    textAlign: TextAlign.start,
-                                    style: AppTypography.kBold18.copyWith(
-                                        color: Colors.grey
-                                    )
+                                SizedBox(
+                                  width: AppSpacing.tenHorizontal,
                                 ),
+                                Text("Reset your password.",
+                                    textAlign: TextAlign.start,
+                                    style: AppTypography.kBold18
+                                        .copyWith(color: Colors.grey)),
                               ],
                             ),
-                            SizedBox(height: AppSpacing.fifteenVertical,),
+                            SizedBox(
+                              height: AppSpacing.fifteenVertical,
+                            ),
                             CustomTextField(
                               hintText: "Email",
                               iconPath: AppAssets.kEmail,
@@ -454,7 +460,8 @@ class ForgetPasswordView extends StatelessWidget {
                                 if (value == null || value.isEmpty) {
                                   return 'Email is required';
                                 }
-                                if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(value)) {
+                                if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")
+                                    .hasMatch(value)) {
                                   return 'Enter a valid email';
                                 }
                                 return null;
@@ -466,30 +473,31 @@ class ForgetPasswordView extends StatelessWidget {
                             SizedBox(height: AppSpacing.thirtyVertical),
                             PrimaryButton(
                               color: AppColors.kSkyBlue,
-                              onTap: ()async  {
+                              onTap: () async {
                                 await controller.submitForgetPassword();
                               },
                               text: 'Continue',
                             ),
-                            SizedBox(height: AppSpacing.twentyVertical,),
+                            SizedBox(
+                              height: AppSpacing.twentyVertical,
+                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
                                   'Remember your password?',
-                                  style: AppTypography.kBold16.copyWith(
-                                      color: Colors.grey
-                                  ),
+                                  style: AppTypography.kBold16
+                                      .copyWith(color: Colors.grey),
                                 ),
                                 TextButton(
-                                  onPressed: (){
-                                    Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+                                  onPressed: () {
+                                    Get.offAllNamed<dynamic>(
+                                        AppRoutes.getSignInRoute());
                                   },
                                   child: Text(
                                     'Login',
-                                    style: AppTypography.kBold18.copyWith(
-                                        color: AppColors.kSkyBlue
-                                    ),
+                                    style: AppTypography.kBold18
+                                        .copyWith(color: AppColors.kSkyBlue),
                                   ),
                                 )
                               ],
@@ -503,7 +511,7 @@ class ForgetPasswordView extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // "Powered by TAC Solutions" - Fixed at bottom of safe area
             Container(
               width: double.infinity,
@@ -513,10 +521,8 @@ class ForgetPasswordView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  'Powered by TAC Solutions',
-                  style: AppTypography.kLight14.copyWith(
-                    color: Colors.grey
-                  ),
+                  'Powered by Control1 Security',
+                  style: AppTypography.kLight14.copyWith(color: Colors.grey),
                 ),
               ),
             ),
