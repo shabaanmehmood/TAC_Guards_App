@@ -4,8 +4,7 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
-import 'package:tac/models/jobApplications/jobApplications_model.dart';
-import 'package:tac/models/user_model.dart';
+
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/checkin/checkin_overlay.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
@@ -61,13 +60,13 @@ class MyJobsView1 extends StatelessWidget {
             // ),
             Row(
               children: [
-                 Image.asset(
-                     AppAssets.kTacLogo,
-                    height: Get.height * 0.045,
-                    // width: Get.width * 0.18,
-                    fit: BoxFit.contain,
-                  ),         
-               SizedBox(width: 4),
+                Image.asset(
+                  AppAssets.kTacLogo,
+                  height: Get.height * 0.045,
+                  // width: Get.width * 0.18,
+                  fit: BoxFit.contain,
+                ),
+                SizedBox(width: 4),
                 Text(
                   'My Jobs',
                   style:
@@ -100,7 +99,13 @@ class MyJobsView1 extends StatelessWidget {
   }
 
   Widget _buildTabFilters() {
-    List<String> filters = ["Active", "Pending", "Completed", "Cancelled"];
+    List<String> filters = [
+      "Active",
+      "In Progress",
+      "Pending",
+      "Completed",
+      "Cancelled"
+    ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Obx(() => Row(
@@ -206,20 +211,20 @@ class MyJobsView1 extends StatelessWidget {
     );
   }
 
-  String _mapStatus(String apiStatus) {
-    switch (apiStatus.toLowerCase()) {
-      case 'active':
-        return 'Active';
-      case 'pending':
-        return 'Pending';
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return apiStatus.capitalizeFirst ?? '';
-    }
-  }
+  // String _mapStatus(String apiStatus) {
+  //   switch (apiStatus.toLowerCase()) {
+  //     case 'active':
+  //       return 'Active';
+  //     case 'pending':
+  //       return 'Pending';
+  //     case 'completed':
+  //       return 'Completed';
+  //     case 'cancelled':
+  //       return 'Cancelled';
+  //     default:
+  //       return apiStatus.capitalizeFirst ?? '';
+  //   }
+  // }
 }
 
 class JobCardWidget extends StatelessWidget {

@@ -91,7 +91,8 @@ class ResetPasswordView extends StatelessWidget {
                               LengthLimitingTextInputFormatter(20)
                             ],
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.resetPasswordFormKey.currentState!
+                                  .validate();
                             },
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -120,7 +121,8 @@ class ResetPasswordView extends StatelessWidget {
                               LengthLimitingTextInputFormatter(20)
                             ],
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.resetPasswordFormKey.currentState!
+                                  .validate();
                             },
                             validator: (value) {
                               if (value == null || value.isEmpty) {

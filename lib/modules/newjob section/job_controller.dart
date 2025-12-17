@@ -67,6 +67,7 @@ class JobController extends GetxController {
   // Map filter label to API status value
   final Map<String, String> statusMap = {
     'Active': 'active',
+    'In Progress': 'in_progress',
     'Pending': 'pending',
     'Completed': 'completed',
     'Cancelled': 'cancelled',
@@ -134,102 +135,104 @@ class JobController extends GetxController {
     selectedFilter.value = filter;
   }
 
-  List<JobModel> get filteredJobModels {
-    final status = statusMap[selectedFilter.value] ?? '';
-    return allApplications
-        .where((j) => j.job.status.toLowerCase() == status.toLowerCase())
-        .map((jobApp) {
-      final job = jobApp.job;
-      final shift = jobApp.assignedShift;
-      String cardStatus;
-      String statusLabel;
-      String? buttonText;
-      bool showButton = false;
+  // List<JobModel> get filteredJobModels {
+  //   final status = statusMap[selectedFilter.value] ?? '';
+  //   return allApplications
+  //       .where((j) => j.job.status.toLowerCase() == status.toLowerCase())
+  //       .map((jobApp) {
+  //     final job = jobApp.job;
+  //     final shift = jobApp.assignedShift;
+  //     String cardStatus;
+  //     String statusLabel;
+  //     String? buttonText;
+  //     bool showButton = false;
 
-      // ---- CARD/BUTTON/BACKGROUND STATUS LOGIC ----
+  //     // ---- CARD/BUTTON/BACKGROUND STATUS LOGIC ----
 
-      if (job.status.toLowerCase() == 'active') {
-        // Check-in required only
-        if ((shift.checkInRequired ?? false) &&
-            !(shift.checkOutRequired ?? false)) {
-          cardStatus = 'In Progress';
-          statusLabel = 'In Progress';
-          buttonText = 'Check In';
-          showButton = true;
-        }
-        // Check-out required only
-        else if (!(shift.checkInRequired ?? false) &&
-            (shift.checkOutRequired ?? false)) {
-          cardStatus = 'Awaiting';
-          statusLabel = 'Awaiting';
-          buttonText = 'Check Out';
-          showButton = true;
-        } else {
-          // Just active, no checkin/checkout required right now
-          cardStatus = 'Active';
-          statusLabel = 'Active';
-          buttonText = null;
-          showButton = false;
-        }
-      } else if (job.status.toLowerCase() == 'completed') {
-        cardStatus = 'Completed';
-        statusLabel = 'Completed';
-        buttonText = 'Share your review';
-        showButton = true;
-      } else if (job.status.toLowerCase() == 'pending') {
-        cardStatus = 'Pending';
-        statusLabel = 'Pending';
-        buttonText = null;
-        showButton = false;
-      } else if (job.status.toLowerCase() == 'cancelled') {
-        cardStatus = 'Cancelled';
-        statusLabel = 'Cancelled';
-        buttonText = null;
-        showButton = false;
-      } else {
-        cardStatus = job.status.capitalizeFirst ?? '';
-        statusLabel = cardStatus;
-        buttonText = null;
-        showButton = false;
-      }
+  //     if (job.status.toLowerCase() == 'active' ||
+  //         job.status.toLowerCase() == 'in_progress') {
+  //       // Check-in required only
+  //       if ((shift.checkInRequired ?? false) &&
+  //           !(shift.checkOutRequired ?? false)) {
+  //         cardStatus = 'In Progress';
+  //         statusLabel = 'In Progress';
+  //         buttonText = 'Check In';
+  //         showButton = true;
+  //       }
+  //       // Check-out required only
+  //       else if (!(shift.checkInRequired ?? false) &&
+  //           (shift.checkOutRequired ?? false)) {
+  //         cardStatus = 'Awaiting';
+  //         statusLabel = 'Awaiting';
+  //         buttonText = 'Check Out';
+  //         showButton = true;
+  //       } else {
+  //         // Just active, no checkin/checkout required right now
+  //         cardStatus = 'Active';
+  //         statusLabel = 'Active';
+  //         buttonText = null;
+  //         showButton = false;
+  //       }
+  //     } else if (job.status.toLowerCase() == 'completed') {
+  //       cardStatus = 'Completed';
+  //       statusLabel = 'Completed';
+  //       buttonText = 'Share your review';
+  //       showButton = true;
+  //     } else if (job.status.toLowerCase() == 'in_progress' ||
+  //         job.status.toLowerCase() == 'pending') {
+  //       cardStatus = 'Pending';
+  //       statusLabel = 'Pending';
+  //       buttonText = null;
+  //       showButton = false;
+  //     } else if (job.status.toLowerCase() == 'cancelled') {
+  //       cardStatus = 'Cancelled';
+  //       statusLabel = 'Cancelled';
+  //       buttonText = null;
+  //       showButton = false;
+  //     } else {
+  //       cardStatus = job.status.capitalizeFirst ?? '';
+  //       statusLabel = cardStatus;
+  //       buttonText = null;
+  //       showButton = false;
+  //     }
 
-      return JobModel(
-        id: job.id ?? jobApp.id,
-        title: job.title,
-        guardName: jobApp.job.contractor.name ?? '--',
-        rating: '',
-        location: job.location,
-        distance: job.latitude,
-        time: job.shifts.isNotEmpty
-            ? '${job.shifts[0].startTime} - ${job.shifts[0].endTime}'
-            : '',
-        status: cardStatus, // Controls background and status
-        statusLabel: statusLabel,
-        price:
-            job.payPerHour.isNotEmpty && job.status.toLowerCase() == 'completed'
-                ? '\$${job.payPerHour}'
-                : '',
-        remainingTime: null,
-        nestedCards: null,
-        showButton: showButton,
-        buttonText: buttonText,
-      );
-    }).toList();
-  }
+  //     return JobModel(
+  //       id: job.id ?? jobApp.id,
+  //       title: job.title,
+  //       guardName: jobApp.job.contractor.name ?? '--',
+  //       rating: '',
+  //       location: job.location,
+  //       distance: job.latitude,
+  //       time: job.shifts.isNotEmpty
+  //           ? '${job.shifts[0].startTime} - ${job.shifts[0].endTime}'
+  //           : '',
+  //       status: cardStatus, // Controls background and status
+  //       statusLabel: statusLabel,
+  //       price:
+  //           job.payPerHour.isNotEmpty && job.status.toLowerCase() == 'completed'
+  //               ? '\$${job.payPerHour}'
+  //               : '',
+  //       remainingTime: null,
+  //       nestedCards: null,
+  //       showButton: showButton,
+  //       buttonText: buttonText,
+  //     );
+  //   }).toList();
+  // }
 
 // Helper (add to your controller - or pass in as a function)
-  String _mapStatus(String apiStatus) {
-    switch (apiStatus.toLowerCase()) {
-      case 'active':
-        return 'In Progress';
-      case 'pending':
-        return 'Pending';
-      case 'completed':
-        return 'Completed';
-      case 'cancelled':
-        return 'Cancelled';
-      default:
-        return apiStatus.capitalizeFirst ?? '';
-    }
-  }
+  // String _mapStatus(String apiStatus) {
+  //   switch (apiStatus.toLowerCase()) {
+  //     case 'active':
+  //       return 'In Progress';
+  //     case 'pending':
+  //       return 'Pending';
+  //     case 'completed':
+  //       return 'Completed';
+  //     case 'cancelled':
+  //       return 'Cancelled';
+  //     default:
+  //       return apiStatus.capitalizeFirst ?? '';
+  //   }
+  // }
 }

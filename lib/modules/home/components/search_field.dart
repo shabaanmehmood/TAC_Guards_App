@@ -112,7 +112,6 @@
 // //   final bool isEnabled;
 // //   final GuardsViewController? guardsController; // Add this property
 
-
 // //   const SearchField({
 // //     this.leadingIcon,
 // //     this.icon1,
@@ -230,8 +229,6 @@
 // //   }
 // // }
 
-
-
 // import 'package:flutter/material.dart';
 // import 'package:flutter_svg/flutter_svg.dart';
 // import 'package:get/get.dart';
@@ -346,7 +343,6 @@
 //   final bool isEnabled;
 //   final GuardsViewController? guardsController; // Add this property
 //   final VoidCallback? onSearchPressed; // Add this parameter
-  
 
 //   const SearchField({
 //     this.leadingIcon,
@@ -492,7 +488,6 @@
 //   }
 // }
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -527,7 +522,6 @@ class SearchField extends StatelessWidget {
   final bool isEnabled;
   final GuardsViewController? guardsController;
   final VoidCallback? onSearchPressed;
-  
 
   const SearchField({
     this.leadingIcon,
@@ -543,14 +537,15 @@ class SearchField extends StatelessWidget {
     this.onSearchPressed,
     super.key,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         if (!isEnabled) {
           // Navigate and pass the controller directly
-          Get.to(() => SearchView(guardsController: guardsController!))?.then((value) {
+          Get.to(() => SearchView(guardsController: guardsController!))
+              ?.then((value) {
             guardsController!.update();
           });
         }
@@ -590,11 +585,11 @@ class SearchField extends StatelessWidget {
               ),
               prefixIcon: leadingIcon != null
                   ? Image.asset(
-                AppAssets.kSearch,
-                height: 22,
-                width: 22,
-                color: isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
-              )
+                      AppAssets.kSearch,
+                      height: 22,
+                      width: 22,
+                      color: isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
+                    )
                   : null,
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -605,14 +600,20 @@ class SearchField extends StatelessWidget {
                         icon1!,
                         height: 22,
                         width: 22,
-                        color: isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
+                        color:
+                            isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
                       ),
                       onPressed: () {
-                        if (controller != null) controller!.clear();
+                        try {
+                          if (controller != null) controller!.clear();
+                        } catch (e) {
+                          // Controller might be disposed
+                        }
                         if (onChanged != null) onChanged!('');
                         // Also clear the search query in controllers
                         if (Get.isRegistered<SearchViewController>()) {
-                          Get.find<SearchViewController>().searchQuery.value = '';
+                          Get.find<SearchViewController>().searchQuery.value =
+                              '';
                         }
                       },
                     ),
@@ -622,18 +623,23 @@ class SearchField extends StatelessWidget {
                         icon2!,
                         height: 22,
                         width: 22,
-                        color: isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
+                        color:
+                            isIconColorBlue ? AppColors.kSkyBlue : Colors.grey,
                       ),
                       onPressed: () {
-                        if (icon2! == AppAssets.kSearch && onSearchPressed != null) {
+                        if (icon2! == AppAssets.kSearch &&
+                            onSearchPressed != null) {
                           // This is the search icon - perform search
                           onSearchPressed!();
                         } else if (icon2! == AppAssets.kFilter) {
                           // This is the filter icon - open advanced filters
-                          Get.to(() => const AdvancedFiltersView())?.then((selectedFilters) {
-                            if (selectedFilters != null && selectedFilters is List<String>) {
+                          Get.to(() => const AdvancedFiltersView())
+                              ?.then((selectedFilters) {
+                            if (selectedFilters != null &&
+                                selectedFilters is List<String>) {
                               if (Get.isRegistered<SearchViewController>()) {
-                                final searchController = Get.find<SearchViewController>();
+                                final searchController =
+                                    Get.find<SearchViewController>();
                                 // The filters are already applied in the advanced filter screen
                                 // Just refresh the view
                                 searchController.update();
@@ -642,8 +648,10 @@ class SearchField extends StatelessWidget {
                           });
                         } else {
                           // Default behavior for other icons
-                          Get.to(() => const AdvancedFiltersView())?.then((selectedFilters) {
-                            if (selectedFilters != null && selectedFilters is List<String>) {
+                          Get.to(() => const AdvancedFiltersView())
+                              ?.then((selectedFilters) {
+                            if (selectedFilters != null &&
+                                selectedFilters is List<String>) {
                               // Handle the selected filters
                               print('Selected filters: $selectedFilters');
                             }

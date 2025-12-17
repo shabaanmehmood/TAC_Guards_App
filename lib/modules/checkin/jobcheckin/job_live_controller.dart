@@ -30,6 +30,23 @@ class JobLiveController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Reset all values to initial state
+    isApproved.value = false;
+    seconds.value = 0;
+    checkboxValue.value = false;
+    timerText.value = "00:00:00";
+    shiftStatus.value = "WAITING FOR SHIFT TIME";
+    isCheckedIn.value = true;
+    isNavigating.value = false;
+    errorMessage.value = '';
+    completeApiData = {};
+    _timer?.cancel();
+    _scheduledStartTimer?.cancel();
+    _timer = null;
+    _scheduledStartTimer = null;
+    _shiftStartTime = null;
+    _shiftEndTime = null;
+    _actualShiftStartTime = null;
     initializeTimer();
   }
 
@@ -333,6 +350,7 @@ class JobLiveController extends GetxController {
       if (response.statusCode == 200) {
         print("✅ Checkout API call successful");
         final jsonResponse = jsonDecode(response.body);
+
         print("📋 Checkout API Response: $jsonResponse");
       } else {
         throw Exception(
