@@ -6,6 +6,9 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/checkin/jobcheckin/job_checkin_screen.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_live_controller.dart';
+import 'package:tac/modules/checkin/jobcheckin/job_live_screen.dart';
+import 'package:tac/modules/newjob%20section/job_controller.dart';
 import 'package:tac/widhets/common%20overlays/uploadFile_overlay.dart';
 import 'package:tac/widhets/common%20widgets/buttons/job_card.dart';
 import 'package:tac/widhets/common%20widgets/buttons/myJob_card.dart';
@@ -208,14 +211,23 @@ class CheckInPage extends StatelessWidget {
                         //   );
                         //   return;
                         // }
-                        if (isCheckInRequired == true && isCheckOutRequired == false) {
-  Get.to(() => JobCheckinScreen(), arguments: {
-    'shiftId': shiftId,
-    'latitude': latitude,
-    'longitude': longitude,
-  });
-}
+                        if (isCheckInRequired == true &&
+                            isCheckOutRequired == false) {
+                          Get.to(() => JobCheckinScreen(), arguments: {
+                            'shiftId': shiftId,
+                            'latitude': latitude,
+                            'longitude': longitude,
+                          });
+                        } else if (isCheckOutRequired == true &&
+                            isCheckInRequired == false) {
+                          await controller.checkOut(
+                              shiftId,
+                              userController.userData.value!.id!,
+                              latitude,
+                              longitude);
 
+                          Get.find<JobController>().refreshJobs();
+                        }
                       },
                       child: controller.isLoading.value
                           ? SizedBox(

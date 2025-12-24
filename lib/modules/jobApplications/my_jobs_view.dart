@@ -162,6 +162,33 @@ class MyJobsView1 extends StatelessWidget {
           itemBuilder: (context, index) {
             final jobApp = jobs[index];
             print('shift id is: ${jobApp.assignedShift.shift.id}');
+
+            // Calculate buttonText and showButton based on job status
+            String? buttonText;
+            bool showButton = false;
+            final jobStatus = jobApp.job.status.toLowerCase();
+            final checkIn = jobApp.assignedShift.checkInRequired ?? false;
+            final checkOut = jobApp.assignedShift.checkOutRequired ?? false;
+
+            if (jobStatus == 'active' || jobStatus == 'in_progress') {
+              if (checkIn && !checkOut) {
+                buttonText = 'Check In';
+                showButton = true;
+              } else if (!checkIn && checkOut) {
+                buttonText = 'Check Out';
+                showButton = true;
+              } else {
+                buttonText = null;
+                showButton = false;
+              }
+            } else if (jobStatus == 'completed') {
+              buttonText = 'Share your review';
+              showButton = true;
+            } else {
+              buttonText = null;
+              showButton = false;
+            }
+
             return JobCardWidget(
               job: JobModel(
                 id: jobApp.job.id,
@@ -181,14 +208,8 @@ class MyJobsView1 extends StatelessWidget {
                     : '',
                 remainingTime: null,
                 nestedCards: null,
-                showButton: jobApp.assignedShift.checkInRequired ??
-                    false || jobApp.assignedShift.checkOutRequired ??
-                    false,
-                buttonText: jobApp.assignedShift.checkInRequired ?? false
-                    ? 'Check In'
-                    : jobApp.assignedShift.checkOutRequired ?? false
-                        ? 'Check Out'
-                        : null,
+                showButton: showButton,
+                buttonText: buttonText,
               ),
               shiftId: jobApp.assignedShift.shift.id,
               latitude: jobApp.job.latitude,
