@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,111 @@ class JobController extends GetxController {
   var allApplications = <JobApplication>[].obs;
   final apiService = MyApIService();
   UserController userController = Get.find<UserController>();
+  Timer? _pollingTimer;
+  var lastAutoRefreshTime = DateTime.now().obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchJobApplications(userController.userData.value!.id!);
+    startPolling();
+  }
+
+  @override
+  void onClose() {
+    _stopPolling();
+    super.onClose();
+  }
+
+  void startPolling() {
+    _stopPolling();
+    
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      if (!isLoading.value) {
+        debugPrint('=== Auto-refresh triggered at ${DateTime.now()} ===');
+        _autoRefreshJobs();
+      }
+    });
+  }
+
+  void _stopPolling() {
+    if (_pollingTimer != null) {
+      _pollingTimer!.cancel();
+      _pollingTimer = null;
+    }
+  }
+
+  Future<void> _autoRefreshJobs() async {
+    try {
+      debugPrint('Fetching updated jobs...');
+      var functionUrl = 'jobApplication/applications/${userController.userData.value!.id!}';
+      final response = await http.get(
+        Uri.parse(apiService.baseurl + functionUrl),
+        headers: {
+          "Content-Type": "application/json",
+          'ngrok-skip-browser-warning': 'true',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonMap = json.decode(response.body);
+        final data = jsonMap['data'];
+
+        List<JobApplication> newApplications = [];
+        if (data is List) {
+          newApplications = data.map((e) => JobApplication.fromJson(e)).toList();
+        } else if (data is Map) {
+          newApplications = [JobApplication.fromJson(data)];
+        }
+
+        debugPrint('Current jobs: ${allApplications.length}, New jobs: ${newApplications.length}');
+        
+        // Always update the list to trigger UI rebuild
+        // This ensures jobs move between tabs when status changes
+        allApplications.value = newApplications;
+        lastAutoRefreshTime.value = DateTime.now();
+        
+        // Force UI to rebuild
+        update();
+        
+        debugPrint('✅ Jobs updated! Status changes will now reflect in UI');
+        
+        // Log status changes for debugging
+        _logStatusChanges(allApplications, newApplications);
+      } else {
+        debugPrint('❌ Auto-refresh failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ Auto refresh error: $e');
+    }
+  }
+
+  // Helper to log status changes for debugging
+  void _logStatusChanges(List<JobApplication> oldList, List<JobApplication> newList) {
+    Map<String, String> oldStatusMap = {};
+    Map<String, String> newStatusMap = {};
+    
+    for (var app in oldList) {
+      if (app.job.id != null) {
+        oldStatusMap[app.job.id!] = app.job.status;
+      }
+    }
+    
+    for (var app in newList) {
+      if (app.job.id != null) {
+        newStatusMap[app.job.id!] = app.job.status;
+      }
+    }
+    
+    // Check for status changes
+    for (var jobId in oldStatusMap.keys) {
+      if (newStatusMap.containsKey(jobId)) {
+        if (oldStatusMap[jobId] != newStatusMap[jobId]) {
+          debugPrint('🔄 Job $jobId status changed: ${oldStatusMap[jobId]} -> ${newStatusMap[jobId]}');
+        }
+      }
+    }
+  }
 
   Future<void> fetchJobApplications(String userId) async {
     isLoading.value = true;
@@ -27,17 +133,16 @@ class JobController extends GetxController {
         },
       );
       if (response.statusCode == 200) {
-        debugPrint('Response Body: ${response.body}');
         final Map<String, dynamic> jsonMap = json.decode(response.body);
         final data = jsonMap['data'];
         if (data is List) {
-          allApplications.value =
-              data.map((e) => JobApplication.fromJson(e)).toList();
+          allApplications.value = data.map((e) => JobApplication.fromJson(e)).toList();
         } else if (data is Map) {
           allApplications.value = [JobApplication.fromJson(data)];
         } else {
           allApplications.clear();
         }
+        lastAutoRefreshTime.value = DateTime.now();
       } else {
         allApplications.clear();
       }
@@ -45,6 +150,7 @@ class JobController extends GetxController {
       allApplications.clear();
     } finally {
       isLoading.value = false;
+      update(); // Force UI update
     }
   }
 
@@ -52,6 +158,13 @@ class JobController extends GetxController {
     isLoading.value = true;
     try {
       await fetchJobApplications(userController.userData.value!.id!);
+      Get.snackbar(
+        "Success",
+        "Jobs refreshed",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
     } catch (e) {
       Get.snackbar(
         "Error",
@@ -72,6 +185,17 @@ class JobController extends GetxController {
     'Completed': 'completed',
     'Cancelled': 'cancelled',
   };
+
+  // Add this method to get status counts for UI
+  Map<String, int> get statusCounts {
+    Map<String, int> counts = {};
+    for (var filter in statusMap.keys) {
+      counts[filter] = allApplications
+          .where((j) => j.job.status.toLowerCase() == statusMap[filter]!.toLowerCase())
+          .length;
+    }
+    return counts;
+  }
 
   Future<Map<String, dynamic>> submitReview({
     required String guardId,
@@ -99,6 +223,8 @@ class JobController extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        // Refresh jobs after submitting review
+        _autoRefreshJobs();
         return {
           "status": true,
           "message": "Review submitted successfully!",
@@ -118,12 +244,6 @@ class JobController extends GetxController {
     }
   }
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchJobApplications(userController.userData.value!.id!);
-  }
-
   List<JobApplication> get filteredJobs {
     final status = statusMap[selectedFilter.value] ?? '';
     return allApplications
@@ -133,106 +253,6 @@ class JobController extends GetxController {
 
   void setFilter(String filter) {
     selectedFilter.value = filter;
+    update(); // Force UI update when filter changes
   }
-
-  // List<JobModel> get filteredJobModels {
-  //   final status = statusMap[selectedFilter.value] ?? '';
-  //   return allApplications
-  //       .where((j) => j.job.status.toLowerCase() == status.toLowerCase())
-  //       .map((jobApp) {
-  //     final job = jobApp.job;
-  //     final shift = jobApp.assignedShift;
-  //     String cardStatus;
-  //     String statusLabel;
-  //     String? buttonText;
-  //     bool showButton = false;
-
-  //     // ---- CARD/BUTTON/BACKGROUND STATUS LOGIC ----
-
-  //     if (job.status.toLowerCase() == 'active' ||
-  //         job.status.toLowerCase() == 'in_progress') {
-  //       // Check-in required only
-  //       if ((shift.checkInRequired ?? false) &&
-  //           !(shift.checkOutRequired ?? false)) {
-  //         cardStatus = 'In Progress';
-  //         statusLabel = 'In Progress';
-  //         buttonText = 'Check In';
-  //         showButton = true;
-  //       }
-  //       // Check-out required only
-  //       else if (!(shift.checkInRequired ?? false) &&
-  //           (shift.checkOutRequired ?? false)) {
-  //         cardStatus = 'Awaiting';
-  //         statusLabel = 'Awaiting';
-  //         buttonText = 'Check Out';
-  //         showButton = true;
-  //       } else {
-  //         // Just active, no checkin/checkout required right now
-  //         cardStatus = 'Active';
-  //         statusLabel = 'Active';
-  //         buttonText = null;
-  //         showButton = false;
-  //       }
-  //     } else if (job.status.toLowerCase() == 'completed') {
-  //       cardStatus = 'Completed';
-  //       statusLabel = 'Completed';
-  //       buttonText = 'Share your review';
-  //       showButton = true;
-  //     } else if (job.status.toLowerCase() == 'in_progress' ||
-  //         job.status.toLowerCase() == 'pending') {
-  //       cardStatus = 'Pending';
-  //       statusLabel = 'Pending';
-  //       buttonText = null;
-  //       showButton = false;
-  //     } else if (job.status.toLowerCase() == 'cancelled') {
-  //       cardStatus = 'Cancelled';
-  //       statusLabel = 'Cancelled';
-  //       buttonText = null;
-  //       showButton = false;
-  //     } else {
-  //       cardStatus = job.status.capitalizeFirst ?? '';
-  //       statusLabel = cardStatus;
-  //       buttonText = null;
-  //       showButton = false;
-  //     }
-
-  //     return JobModel(
-  //       id: job.id ?? jobApp.id,
-  //       title: job.title,
-  //       guardName: jobApp.job.contractor.name ?? '--',
-  //       rating: '',
-  //       location: job.location,
-  //       distance: job.latitude,
-  //       time: job.shifts.isNotEmpty
-  //           ? '${job.shifts[0].startTime} - ${job.shifts[0].endTime}'
-  //           : '',
-  //       status: cardStatus, // Controls background and status
-  //       statusLabel: statusLabel,
-  //       price:
-  //           job.payPerHour.isNotEmpty && job.status.toLowerCase() == 'completed'
-  //               ? '\$${job.payPerHour}'
-  //               : '',
-  //       remainingTime: null,
-  //       nestedCards: null,
-  //       showButton: showButton,
-  //       buttonText: buttonText,
-  //     );
-  //   }).toList();
-  // }
-
-// Helper (add to your controller - or pass in as a function)
-  // String _mapStatus(String apiStatus) {
-  //   switch (apiStatus.toLowerCase()) {
-  //     case 'active':
-  //       return 'In Progress';
-  //     case 'pending':
-  //       return 'Pending';
-  //     case 'completed':
-  //       return 'Completed';
-  //     case 'cancelled':
-  //       return 'Cancelled';
-  //     default:
-  //       return apiStatus.capitalizeFirst ?? '';
-  //   }
-  // }
 }

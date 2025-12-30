@@ -4,25 +4,79 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/data/data/constants/app_assets.dart';
+import 'package:tac/models/jobApplications/jobApplications_model.dart';
 
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/checkin/checkin_overlay.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
-import 'package:tac/modules/fiilters/sort_overlay.dart';
+import 'package:tac/modules/newjob%20section/job_model.dart';
 import '../newjob section/job_controller.dart';
-// import '../newjob section/job_model.dart';
 import 'package:tac/models/jobApplications/job_model.dart';
 import 'package:tac/modules/home/components/search_field.dart';
 
-import '../newjob section/job_model.dart';
+class MyJobsView1 extends StatefulWidget {
+  const MyJobsView1({super.key});
 
-class MyJobsView1 extends StatelessWidget {
+  @override
+  State<MyJobsView1> createState() => _MyJobsView1State();
+}
+
+class _MyJobsView1State extends State<MyJobsView1> {
   final JobController jobController = Get.put(JobController());
-  // final JobApplicationController jobController = Get.put(JobApplicationController());
   final TextEditingController searchController = TextEditingController();
   final GuardsViewController guardsController = Get.put(GuardsViewController());
+  DateTime _lastAutoRefresh = DateTime.now();
+  bool _isAutoRefreshing = false;
 
-  MyJobsView1({super.key});
+  @override
+  void initState() {
+    super.initState();
+    // Listen for changes in allApplications
+    ever(jobController.allApplications, (List<JobApplication> apps) {
+      if (mounted) {
+        setState(() {
+          _lastAutoRefresh = DateTime.now();
+          _isAutoRefreshing = false;
+        });
+
+        // Show notification when jobs status changes
+        _showStatusChangeNotification(apps);
+      }
+    });
+
+    // Also listen for last refresh time updates
+    ever(jobController.lastAutoRefreshTime, (_) {
+      if (mounted) {
+        setState(() {
+          _lastAutoRefresh = jobController.lastAutoRefreshTime.value;
+        });
+      }
+    });
+  }
+
+  void _showStatusChangeNotification(List<JobApplication> apps) {
+    // You can add logic here to show notifications when jobs change status
+    debugPrint('Jobs list updated with ${apps.length} jobs');
+
+    // Show a subtle snackbar when there are jobs
+    if (apps.isNotEmpty) {
+      final currentFilter = jobController.selectedFilter.value;
+      final filteredCount = jobController.filteredJobs.length;
+
+      // if (filteredCount == 0) {
+      //   // No jobs in current filter - suggest switching
+      //   Future.delayed(Duration(milliseconds: 500), () {
+      //     Get.snackbar(
+      //       "No jobs in current filter",
+      //       "Try switching to another tab",
+      //       backgroundColor: AppColors.kSkyBlue,
+      //       colorText: Colors.white,
+      //       duration: Duration(seconds: 2),
+      //     );
+      //   });
+      // }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +92,10 @@ class MyJobsView1 extends StatelessWidget {
               _appBar(),
               SizedBox(height: AppSpacing.fifteenVertical),
               _buildTabFilters(),
+              // SizedBox(height: AppSpacing.tenVertical),
+              // _buildLastRefreshIndicator(),
               SizedBox(height: AppSpacing.tenVertical),
-              Expanded(child: Obx(() => _buildJobList()))
+              Expanded(child: _buildJobList())
             ],
           ),
         ),
@@ -52,18 +108,11 @@ class MyJobsView1 extends StatelessWidget {
       children: [
         Row(
           children: [
-            // Image.asset(
-            //   AppAssets.kTacHomeScreenLogo,
-            //   height: Get.height * 0.07,
-            //   width: Get.width * 0.25,
-            //   fit: BoxFit.contain,
-            // ),
             Row(
               children: [
                 Image.asset(
                   AppAssets.kTacLogo,
                   height: Get.height * 0.045,
-                  // width: Get.width * 0.18,
                   fit: BoxFit.contain,
                 ),
                 SizedBox(width: 4),
@@ -74,15 +123,45 @@ class MyJobsView1 extends StatelessWidget {
                 ),
               ],
             ),
-            // const Spacer(),
-            // ClipRRect(
-            //   borderRadius: BorderRadius.circular(10),
-            //   child: SizedBox(
-            //     height: 40,
-            //     width: 40,
-            //     child: Image.asset(AppAssets.kPlusSign),
-            //   ),
-            // )
+            Spacer(),
+            // Manual refresh button
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _isAutoRefreshing = true;
+                });
+                jobController.refreshJobs().then((_) {
+                  setState(() {
+                    _isAutoRefreshing = false;
+                    _lastAutoRefresh = DateTime.now();
+                  });
+                });
+              },
+              icon: Obx(() {
+                return Stack(
+                  children: [
+                    Icon(
+                      Icons.refresh,
+                      color: AppColors.kSkyBlue,
+                      size: 24,
+                    ),
+                    if (jobController.isLoading.value || _isAutoRefreshing)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.kgreen,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              }),
+            ),
           ],
         ),
         SizedBox(height: AppSpacing.tenVertical),
@@ -92,7 +171,7 @@ class MyJobsView1 extends StatelessWidget {
           text: 'Search for Security Guards',
           isIconColorBlue: false,
           icon2: AppAssets.kSearch,
-          guardsController: guardsController, // Pass the found controller
+          guardsController: guardsController,
         ),
       ],
     );
@@ -106,146 +185,214 @@ class MyJobsView1 extends StatelessWidget {
       "Completed",
       "Cancelled"
     ];
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Obx(() => Row(
+
+    return GetBuilder<JobController>(
+      builder: (controller) {
+        final statusCounts = controller.statusCounts;
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             children: filters.map((filter) {
-              bool selected = jobController.selectedFilter.value == filter;
+              bool selected = controller.selectedFilter.value == filter;
+              final jobCount = statusCounts[filter] ?? 0;
+
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0),
                 child: FilterChip(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
-                    side: const BorderSide(color: AppColors.kSkyBlue),
+                    side: BorderSide(
+                      color: selected ? AppColors.kSkyBlue : AppColors.kgrey,
+                      width: selected ? 2 : 1,
+                    ),
                   ),
-                  backgroundColor: AppColors.kDarkBlue,
+                  backgroundColor:
+                      selected ? AppColors.kSkyBlue : AppColors.kDarkBlue,
                   selectedColor: AppColors.kSkyBlue,
                   showCheckmark: false,
                   selected: selected,
                   label: Text(
                     filter,
-                    style: AppTypography.kBold14.copyWith(color: Colors.white),
+                    style: AppTypography.kBold14.copyWith(
+                      color: selected ? Colors.white : AppColors.kWhite,
+                    ),
                   ),
-                  onSelected: (_) => jobController.setFilter(filter),
+
+                  //  Row(
+                  //   mainAxisSize: MainAxisSize.min,
+                  //   children: [
+                  //     Text(
+                  //       filter,
+                  //       style: AppTypography.kBold14.copyWith(
+                  //         color: selected ? Colors.white : AppColors.kWhite,
+                  //       ),
+                  //     ),
+                  // SizedBox(width: 4),
+                  // Container(
+                  //   padding:
+                  //       EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  //   decoration: BoxDecoration(
+                  //     color: selected
+                  //         ? Colors.white
+                  //         : AppColors.kSkyBlue.withOpacity(0.3),
+                  //     borderRadius: BorderRadius.circular(10),
+                  //   ),
+                  //   child: Text(
+                  //     jobCount.toString(),
+                  //     style: AppTypography.kBold12.copyWith(
+                  //       color: selected ? AppColors.kSkyBlue : Colors.white,
+                  //     ),
+                  //   ),
+                  // ),
+                  //   ],
+                  // ),
+                  onSelected: (_) => controller.setFilter(filter),
                 ),
               );
             }).toList(),
-          )),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildJobList() {
-    var jobs = jobController.filteredJobs;
-    return RefreshIndicator(
-      onRefresh: () async {
-        await jobController.refreshJobs(); // Call the refresh function
-      },
-      child: Obx(() {
-        if (jobController.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
-        if (jobs.isEmpty) {
-          return GestureDetector(
-            onTap: () {
-              jobController.refreshJobs();
-            },
-            child: Center(
-              child:
-                  Text('No jobs found', style: TextStyle(color: Colors.white)),
+  Widget _buildLastRefreshIndicator() {
+    return Obx(() {
+      final timeDifference =
+          DateTime.now().difference(jobController.lastAutoRefreshTime.value);
+      final secondsAgo = timeDifference.inSeconds;
+
+      String timeText;
+      if (secondsAgo < 60) {
+        timeText = '$secondsAgo seconds ago';
+      } else if (secondsAgo < 120) {
+        timeText = '1 minute ago';
+      } else {
+        timeText = '${timeDifference.inMinutes} minutes ago';
+      }
+
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Icon(
+            Icons.access_time,
+            size: 12,
+            color: AppColors.kgrey,
+          ),
+          SizedBox(width: 4),
+          Text(
+            'Updated $timeText',
+            style: AppTypography.kLight12.copyWith(color: AppColors.kgrey),
+          ),
+          SizedBox(width: 8),
+          if (jobController.isLoading.value)
+            SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.kSkyBlue),
+              ),
             ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildJobList() {
+    return GetBuilder<JobController>(
+      builder: (controller) {
+        final jobs = controller.filteredJobs;
+        if (jobs.isEmpty) {
+          return Center(
+            child: Text('No jobs found', style: TextStyle(color: Colors.white)),
           );
         }
-        return ListView.separated(
-          itemCount: jobs.length,
-          separatorBuilder: (_, __) =>
-              SizedBox(height: AppSpacing.fifteenVertical),
-          itemBuilder: (context, index) {
-            final jobApp = jobs[index];
-            print('shift id is: ${jobApp.assignedShift.shift.id}');
+        return RefreshIndicator(
+          onRefresh: () async {
+            await controller.refreshJobs();
+          },
+          child: ListView.separated(
+            itemCount: jobs.length,
+            separatorBuilder: (_, __) =>
+                SizedBox(height: AppSpacing.fifteenVertical),
+            itemBuilder: (context, index) {
+              final jobApp = jobs[index];
 
-            // Calculate buttonText and showButton based on job status
-            String? buttonText;
-            bool showButton = false;
-            final jobStatus = jobApp.job.status.toLowerCase();
-            final checkIn = jobApp.assignedShift.checkInRequired ?? false;
-            final checkOut = jobApp.assignedShift.checkOutRequired ?? false;
+              // Calculate buttonText and showButton based on job status
+              String? buttonText;
+              bool showButton = false;
+              final jobStatus = jobApp.job.status.toLowerCase();
+              final checkIn = jobApp.assignedShift.checkInRequired ?? false;
+              final checkOut = jobApp.assignedShift.checkOutRequired ?? false;
 
-            if (jobStatus == 'active' || jobStatus == 'in_progress') {
-              if (checkIn && !checkOut) {
-                buttonText = 'Check In';
-                showButton = true;
-              } else if (!checkIn && checkOut) {
-                buttonText = 'Check Out';
+              if (jobStatus == 'active' || jobStatus == 'in_progress') {
+                if (checkIn && !checkOut) {
+                  buttonText = 'Check In';
+                  showButton = true;
+                } else if (!checkIn && checkOut) {
+                  buttonText = 'Check Out';
+                  showButton = true;
+                } else {
+                  buttonText = null;
+                  showButton = false;
+                }
+              } else if (jobStatus == 'completed') {
+                buttonText = 'Share your review';
                 showButton = true;
               } else {
                 buttonText = null;
                 showButton = false;
               }
-            } else if (jobStatus == 'completed') {
-              buttonText = 'Share your review';
-              showButton = true;
-            } else {
-              buttonText = null;
-              showButton = false;
-            }
 
-            return JobCardWidget(
-              job: JobModel(
-                id: jobApp.job.id,
-                title: jobApp.job.title,
-                guardName: jobApp.job.contractor.name ?? '--',
-                rating: '',
-                location: jobApp.job.location,
-                distance: jobApp.job.latitude,
+              return JobCardWidget(
+                key: ValueKey(
+                    '${jobApp.id}_${jobApp.job.status}'), // Include status in key for proper rebuild
+                job: JobModel(
+                  id: jobApp.job.id,
+                  title: jobApp.job.title,
+                  guardName: jobApp.job.contractor.name ?? '--',
+                  rating: '',
+                  location: jobApp.job.location,
+                  distance: jobApp.job.latitude,
+                  time: jobApp.job.shifts.isNotEmpty
+                      ? '${jobApp.job.shifts[0].startTime} - ${jobApp.job.shifts[0].endTime}'
+                      : '',
+                  status: jobApp.job.status,
+                  statusLabel: jobApp.job.status,
+                  price: jobApp.job.payPerHour.isNotEmpty &&
+                          jobApp.job.status.toLowerCase() == 'completed'
+                      ? '\$${jobApp.job.payPerHour}'
+                      : '',
+                  remainingTime: null,
+                  nestedCards: null,
+                  showButton: showButton,
+                  buttonText: buttonText,
+                ),
+                shiftId: jobApp.assignedShift.shift.id,
+                latitude: jobApp.job.latitude,
+                longitude: jobApp.job.longitude,
+                isCheckInRequired:
+                    jobApp.assignedShift.checkInRequired ?? false,
+                isCheckOutRequired:
+                    jobApp.assignedShift.checkOutRequired ?? false,
+                jobId: jobApp.job.id,
+                contractorId: jobApp.job.contractor.id,
+                guardId: controller.userController.userData.value!.id!,
+                date: jobApp.job.shifts.isNotEmpty
+                    ? jobApp.job.shifts[0].date
+                    : '',
                 time: jobApp.job.shifts.isNotEmpty
-                    ? '${jobApp.job.shifts[0].startTime} - ${jobApp.job.shifts[0].endTime}'
+                    ? '${jobApp.job.shifts[0].startTime.substring(0, 5)} - ${jobApp.job.shifts[0].endTime.substring(0, 5)}'
                     : '',
-                status: jobApp.job.status,
-                statusLabel: jobApp.job.status,
-                price: jobApp.job.payPerHour.isNotEmpty &&
-                        jobApp.job.status.toLowerCase() == 'completed'
-                    ? '\${jobApp.job.payPerHour}'
-                    : '',
-                remainingTime: null,
-                nestedCards: null,
-                showButton: showButton,
-                buttonText: buttonText,
-              ),
-              shiftId: jobApp.assignedShift.shift.id,
-              latitude: jobApp.job.latitude,
-              longitude: jobApp.job.longitude,
-              isCheckInRequired: jobApp.assignedShift.checkInRequired ?? false,
-              isCheckOutRequired:
-                  jobApp.assignedShift.checkOutRequired ?? false,
-              jobId: jobApp.job.id,
-              contractorId: jobApp.job.contractor.id,
-              guardId: jobController.userController.userData.value!.id!,
-              date:
-                  jobApp.job.shifts.isNotEmpty ? jobApp.job.shifts[0].date : '',
-              time: jobApp.job.shifts.isNotEmpty
-                  ? '${jobApp.job.shifts[0].startTime.substring(0, 5)} - ${jobApp.job.shifts[0].endTime.substring(0, 5)}'
-                  : '',
-            );
-          },
+              );
+            },
+          ),
         );
-      }),
+      },
     );
   }
-
-  // String _mapStatus(String apiStatus) {
-  //   switch (apiStatus.toLowerCase()) {
-  //     case 'active':
-  //       return 'Active';
-  //     case 'pending':
-  //       return 'Pending';
-  //     case 'completed':
-  //       return 'Completed';
-  //     case 'cancelled':
-  //       return 'Cancelled';
-  //     default:
-  //       return apiStatus.capitalizeFirst ?? '';
-  //   }
-  // }
 }
 
 class JobCardWidget extends StatelessWidget {
