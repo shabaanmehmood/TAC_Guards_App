@@ -15,6 +15,8 @@ import '../models/userupdate_model.dart';
 import '../modules/Messages/socket_file.dart';
 
 class MyApIService {
+  
+  String baseurl = 'https://api.control1security.com.au/api/v1/'; //portal flutter.
   Future<void> sendLocationToApi(String shiftId, String guardId, String jobId,
       double latitude, double longitude) async {
     final payload = {
@@ -49,7 +51,6 @@ class MyApIService {
 
   /// Live portal server:
   // String loginTokenUrl = 'https://truegigs.com/portal/oauth/token';
-  String baseurl = 'http://148.66.158.113:3006/api/v1/'; //portal flutter.
   // String controllerBase = 'https://truegigs.com/portal/'; //baseUrl for other calls
 
   Future<http.Response> signUp(
@@ -291,8 +292,9 @@ class MyApIService {
   }
 
   // static const String imageBaseUrl = 'http://148.66.158.113:3006/';
-  static const String imageBaseUrl = 'http://148.66.158.113:3006/uploads/';
-  static const String imageBaseUrl1 = 'http://148.66.158.113:3006/uploads';
+
+  static const String imageBaseUrl = 'https://api.control1security.com.au/uploads/';
+  static const String imageBaseUrl1 = 'https://api.control1security.com.au/uploads';
   static String? fullImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) return null;
     return '$imageBaseUrl1$imagePath';

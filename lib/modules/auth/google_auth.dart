@@ -12,14 +12,23 @@ import '../../routes/app_routes.dart';
 class GoogleAuthService {
   MyApIService myApIService = MyApIService();
   SignInViewController signInViewController = Get.find<SignInViewController>();
+  static String get androidClientId {
+    // For debug builds (local development)
+    if (kDebugMode) {
+      return '255779318742-7j19eupdmc44q8fsavioskug65vaph9n.apps.googleusercontent.com';
+    } else {
+      // playstore(e.g., profile)
+      return '255779318742-g4ohb1bqor12ff1s228cahru1va1iajl.apps.googleusercontent.com';
+    }
+  }
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile', 'openid'],
     // For iOS - use your REVERSED_CLIENT_ID
-    clientId: 'com.googleusercontent.apps.255779318742',
-    // Optional: For server authentication
+    clientId: androidClientId,
+    // Optional: For server authentication web client id
     serverClientId:
-        '255779318742-s1nht5ir6gn7nkt5lp08atmpe4pg9vi1.apps.googleusercontent.com',
+        '255779318742-sfl9j075utqv88kp199l2s94bih1e5r7.apps.googleusercontent.com',
   );
 
   Future<void> signInWithGoogle() async {
