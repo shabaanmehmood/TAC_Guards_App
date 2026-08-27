@@ -250,8 +250,10 @@
 // }
 
 // FIXED FORGET PASSWORD SCREEN
-import 'dart:ffi';
+// temporary commented for testing
+// import 'dart:ffi';
 
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
@@ -265,6 +267,7 @@ import 'package:get/get.dart';
 import 'package:tac/widhets/common%20widgets/buttons/TextFormFieldWidget.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../dataproviders/api_service.dart';
 import '../../models/onboarding.dart';
 import '../../widhets/common widgets/buttons/custom_icon_button.dart';
@@ -275,13 +278,20 @@ import '../onboarding/components/onboarding_card.dart';
 class ForgetPasswordViewController extends GetxController {
   TextEditingController emailController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  var isSendingOtp = false.obs;
+  var isVerifyingOtp = false.obs;
+  var isResettingPassword = false.obs;
+
   //send OTP
   Future<void> submitForgetPassword() async {
+    if (isSendingOtp.value) return;
     if (formKey.currentState!.validate()) {
+      isSendingOtp.value = true;
       final apiService = MyApIService(); // create instance
       try {
         final response = await apiService.sendOtp(
-          emailController.text.toString(),
+          emailController.text.trim(),
         );
 
         if (response.statusCode == 200) {
@@ -289,10 +299,18 @@ class ForgetPasswordViewController extends GetxController {
           Get.to(() => EnterOtpView());
         } else {
           debugPrint("data from API ${response.body}");
-          debugPrint('Error login failed: ${response.body}');
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+          final String errorMessage =
+              responseBody['message'] ?? 'Failed to send OTP';
+          Get.snackbar("Error", errorMessage,
+              backgroundColor: Colors.red, colorText: Colors.white);
         }
       } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
+        Get.snackbar("Network Error", "Unable to connect to server.",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      } finally {
+        isSendingOtp.value = false;
       }
     }
   }
@@ -305,24 +323,39 @@ class ForgetPasswordViewController extends GetxController {
 
   //verify OTP
   Future<void> verifyOtp() async {
-    if (formKey.currentState!.validate()) {
-      final apiService = MyApIService(); // create instance
-      try {
-        final response = await apiService.verifyOtp(
-          emailController.text.toString(),
-          otpControllers.map((controller) => controller.text).join().toString(),
-        );
+    if (isVerifyingOtp.value) return;
+    final otpStr =
+        otpControllers.map((controller) => controller.text).join().trim();
+    if (otpStr.length < 4) {
+      Get.snackbar("Error", "Please enter complete 4-digit OTP",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+    isVerifyingOtp.value = true;
+    final apiService = MyApIService(); // create instance
+    try {
+      final response = await apiService.verifyOtp(
+        emailController.text.trim(),
+        otpStr,
+      );
 
-        if (response.statusCode == 200) {
-          debugPrint("data from API ${response.body}");
-          Get.to(() => ResetPasswordView());
-        } else {
-          debugPrint("data from API ${response.body}");
-          debugPrint('Error verify Otp failed: ${response.body}');
-        }
-      } catch (e) {
-        debugPrint('Error Network error: ${e.toString()}');
+      if (response.statusCode == 200) {
+        debugPrint("data from API ${response.body}");
+        Get.to(() => ResetPasswordView());
+      } else {
+        debugPrint("data from API ${response.body}");
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        final String errorMessage =
+            responseBody['message'] ?? 'Invalid OTP code';
+        Get.snackbar("Error", errorMessage,
+            backgroundColor: Colors.red, colorText: Colors.white);
       }
+    } catch (e) {
+      debugPrint('Error Network error: ${e.toString()}');
+      Get.snackbar("Network Error", "Unable to connect to server.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      isVerifyingOtp.value = false;
     }
   }
 
@@ -344,24 +377,36 @@ class ForgetPasswordViewController extends GetxController {
 
   //reset Password
   Future<void> resetPassword() async {
-    if (formKey.currentState!.validate()) {
+    if (isResettingPassword.value) return;
+    if (resetPasswordFormKey.currentState!.validate()) {
+      isResettingPassword.value = true;
       final apiService = MyApIService(); // create instance
       try {
         final response = await apiService.resetPassword(
-          emailController.text.toString(),
-          passwordController.text.toString(),
-          confirmPasswordController.text.toString(),
+          emailController.text.trim(),
+          passwordController.text.trim(),
+          confirmPasswordController.text.trim(),
         );
 
         if (response.statusCode == 200) {
           debugPrint("data from API ${response.body}");
-          Get.offAndToNamed(AppRoutes.getLandingPageRoute());
+          Get.snackbar("Success", "Password reset successfully. Please log in.",
+              backgroundColor: AppColors.kSkyBlue, colorText: Colors.black);
+          Get.offAllNamed(AppRoutes.getSignInRoute());
         } else {
           debugPrint("data from API ${response.body}");
-          debugPrint('Error Reset Password failed: ${response.body}');
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+          final String errorMessage =
+              responseBody['message'] ?? 'Failed to reset password';
+          Get.snackbar("Error", errorMessage,
+              backgroundColor: Colors.red, colorText: Colors.white);
         }
       } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
+        Get.snackbar("Network Error", "Unable to connect to server.",
+            backgroundColor: Colors.red, colorText: Colors.white);
+      } finally {
+        isResettingPassword.value = false;
       }
     }
   }
@@ -420,7 +465,11 @@ class ForgetPasswordView extends StatelessWidget {
                                 ),
                                 CustomIconButton(
                                   onTap: () {
-                                    Get.back(canPop: true);
+                                    if (Navigator.canPop(context)) {
+                                      Navigator.pop(context);
+                                    } else {
+                                      Get.back();
+                                    }
                                   },
                                 ),
                                 SizedBox(
@@ -456,16 +505,7 @@ class ForgetPasswordView extends StatelessWidget {
                               inputFormatters: [
                                 LengthLimitingTextInputFormatter(320)
                               ],
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Email is required';
-                                }
-                                if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")
-                                    .hasMatch(value)) {
-                                  return 'Enter a valid email';
-                                }
-                                return null;
-                              },
+                              validator: AppValidators.validateEmail,
                               onChanged: (value) {
                                 controller.formKey.currentState!.validate();
                               },

@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:tac/widhets/common%20widgets/buttons/password_field.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../widhets/common widgets/buttons/custom_icon_button.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
 import 'forget_password.dart';
@@ -47,7 +48,11 @@ class ResetPasswordView extends StatelessWidget {
                           ),
                           CustomIconButton(
                             onTap: () {
-                              Get.back(canPop: true);
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Get.back();
+                              }
                             },
                           ),
                           SizedBox(
@@ -79,7 +84,7 @@ class ResetPasswordView extends StatelessWidget {
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.passwordController,
                             obscureText: !controller
-                                .setPasswordVisible.value, // Fix here
+                                .setPasswordVisible.value,
                             iconPath: AppAssets.kPassword,
                             hintText: "Password",
                             passwordVisible:
@@ -88,28 +93,20 @@ class ResetPasswordView extends StatelessWidget {
                               controller.togglePasswordView();
                             },
                             inputFormatters: [
-                              LengthLimitingTextInputFormatter(20)
+                              LengthLimitingTextInputFormatter(64)
                             ],
                             onChanged: (value) {
                               controller.resetPasswordFormKey.currentState!
                                   .validate();
                             },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 8) {
-                                return 'Password must be at least 8 characters';
-                              }
-                              return null;
-                            },
+                            validator: AppValidators.validateSignupPassword,
                           )),
                       SizedBox(height: AppSpacing.fifteenVertical),
                       Obx(() => CustomPasswordField(
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.confirmPasswordController,
                             obscureText: !controller
-                                .setConfirmPasswordVisible.value, // Fix here
+                                .setConfirmPasswordVisible.value,
                             iconPath: AppAssets.kPassword,
                             hintText: "Confirm Password",
                             passwordVisible:
@@ -118,21 +115,15 @@ class ResetPasswordView extends StatelessWidget {
                               controller.toggleConfirmPasswordView();
                             },
                             inputFormatters: [
-                              LengthLimitingTextInputFormatter(20)
+                              LengthLimitingTextInputFormatter(64)
                             ],
                             onChanged: (value) {
                               controller.resetPasswordFormKey.currentState!
                                   .validate();
                             },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 8) {
-                                return 'Password must be at least 8 characters';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                AppValidators.validateConfirmPassword(
+                                    value, controller.passwordController.text),
                           )),
                       SizedBox(height: AppSpacing.thirtyVertical),
                       PrimaryButton(

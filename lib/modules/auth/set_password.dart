@@ -1,4 +1,5 @@
-import 'dart:ffi';
+// temporary commented for testing
+// import 'dart:ffi';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../models/onboarding.dart';
 import '../../widhets/common widgets/buttons/custom_icon_button.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
@@ -53,7 +55,11 @@ class SetPasswordView extends StatelessWidget {
                           ),
                           CustomIconButton(
                             onTap: () {
-                              Get.back(canPop: true);
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Get.back();
+                              }
                             },
                           ),
                           SizedBox(
@@ -82,28 +88,18 @@ class SetPasswordView extends StatelessWidget {
                         height: AppSpacing.fifteenVertical,
                       ),
                       Obx(() => TextFormField(
-                            // maxLength: 8,
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.passwordController,
                             obscureText: !controller
-                                .setPasswordVisible.value, // Fix here
+                                .setPasswordVisible.value,
                             cursorColor: AppColors.kSkyBlue,
                             style: TextStyle(color: AppColors.kWhite),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-
-                              if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                                return 'Password must contain at least one uppercase letter';
-                              }
-                              if (!RegExp(r'[a-z]').hasMatch(value)) {
-                                return 'Password must contain at least one lowercase letter';
-                              }
-                              return null;
-                            },
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(64)
+                            ],
+                            validator: AppValidators.validateSignupPassword,
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.passwordFormKey.currentState!.validate();
                             },
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.all(15),
@@ -134,21 +130,20 @@ class SetPasswordView extends StatelessWidget {
                           )),
                       SizedBox(height: AppSpacing.fifteenVertical),
                       Obx(() => TextFormField(
-                           // maxLength: 8,
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.confirmPasswordController,
                             obscureText: !controller
-                                .setConfirmPasswordVisible.value, // Fix here
+                                .setConfirmPasswordVisible.value,
                             cursorColor: AppColors.kSkyBlue,
                             style: TextStyle(color: AppColors.kWhite),
-                            validator: (value) {
-                              if (value != controller.passwordController.text) {
-                                return "Passwords do not match";
-                              }
-                              return null;
-                            },
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(64)
+                            ],
+                            validator: (value) =>
+                                AppValidators.validateConfirmPassword(
+                                    value, controller.passwordController.text),
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.passwordFormKey.currentState!.validate();
                             },
                             decoration: InputDecoration(
                               counter: Offstage(),

@@ -477,7 +477,8 @@
 
 // FIXED SIGNIN SCREEN
 import 'dart:convert';
-import 'dart:ffi';
+// temporary commented for testing
+// import 'dart:ffi';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
@@ -495,6 +496,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../dataproviders/api_service.dart';
 import '../../models/onboarding.dart';
 import '../../widhets/common widgets/buttons/TextFormFieldWidget.dart';
@@ -635,9 +637,13 @@ class SignInViewController extends GetxController {
     await prefs.setInt('loginTime', DateTime.now().millisecondsSinceEpoch);
   }
 
+  var isLoading = false.obs;
+
   Future<void> submitSignIn(BuildContext context, String? fcmToken,
       {bool autoLogin = false}) async {
+    if (isLoading.value) return;
     if (autoLogin || formKey.currentState!.validate()) {
+      isLoading.value = true;
       final apiService = MyApIService(); // create instance
       try {
         final response = await apiService.login(
@@ -696,6 +702,8 @@ class SignInViewController extends GetxController {
             showNoButton: false,
           );
         }
+      } finally {
+        isLoading.value = false;
       }
     }
   }
@@ -769,16 +777,7 @@ class SignInView extends StatelessWidget {
                               onChanged: (value) {
                                 controller.formKey.currentState!.validate();
                               },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Email is required';
-                                }
-                                if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")
-                                    .hasMatch(value)) {
-                                  return 'Enter a valid email';
-                                }
-                                return null;
-                              },
+                              validator: AppValidators.validateEmail,
                             ),
                             SizedBox(height: AppSpacing.fifteenVertical),
                             Obx(() => CustomPasswordField(
@@ -796,15 +795,7 @@ class SignInView extends StatelessWidget {
                                   onPressed: () {
                                     controller.togglePasswordView();
                                   },
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Password is required';
-                                    }
-                                    if (value.length < 8) {
-                                      return 'Password must be at least 8 characters';
-                                    }
-                                    return null;
-                                  },
+                                  validator: AppValidators.validateLoginPassword,
                                   onChanged: (value) {
                                     controller.formKey.currentState!.validate();
                                   },
@@ -869,70 +860,70 @@ class SignInView extends StatelessWidget {
                             SizedBox(
                               height: AppSpacing.twentyVertical,
                             ),
-                            PrimaryContainer(
-                                width: double.maxFinite,
-                                color: Colors.transparent,
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final googleAuthService =
-                                        GoogleAuthService();
-                                    await googleAuthService.signInWithGoogle();
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        AppAssets.kGoogleLogo,
-                                        fit: BoxFit.contain,
-                                      ),
-                                      SizedBox(
-                                        width: AppSpacing.twentyHorizontal,
-                                      ),
-                                      Text(
-                                        'Continue with Google',
-                                        style: AppTypography.kBold18
-                                            .copyWith(color: AppColors.kWhite),
-                                      )
-                                    ],
-                                  ),
-                                )),
-                            SizedBox(
-                              height: AppSpacing.twentyVertical,
-                            ),
-                            PrimaryContainer(
-                                width: double.maxFinite,
-                                color: Colors.black,
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final isAvailable = await AppleAuthService()
-                                        .isAppleSignInAvailable();
+                            if (!GetPlatform.isIOS)
+                              PrimaryContainer(
+                                  width: double.maxFinite,
+                                  color: Colors.transparent,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () async {
+                                      final googleAuthService =
+                                          GoogleAuthService();
+                                      await googleAuthService.signInWithGoogle();
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          AppAssets.kGoogleLogo,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        SizedBox(
+                                          width: AppSpacing.twentyHorizontal,
+                                        ),
+                                        Text(
+                                          'Continue with Google',
+                                          style: AppTypography.kBold18
+                                              .copyWith(color: AppColors.kWhite),
+                                        )
+                                      ],
+                                    ),
+                                  )),
+                            if (GetPlatform.isIOS)
+                              PrimaryContainer(
+                                  width: double.maxFinite,
+                                  color: Colors.black,
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      final isAvailable = await AppleAuthService()
+                                          .isAppleSignInAvailable();
 
-                                    if (!isAvailable) {
-                                      Get.snackbar("Not Available",
-                                          "Apple Sign-In is not available on this device.");
-                                      return;
-                                    }
+                                      if (!isAvailable) {
+                                        Get.snackbar("Not Available",
+                                            "Apple Sign-In is not available on this device.");
+                                        return;
+                                      }
 
-                                    await AppleAuthService().signInWithApple();
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        AppAssets.kAppleLogo,
-                                        fit: BoxFit.contain,
-                                      ),
-                                      SizedBox(
-                                        width: AppSpacing.twentyHorizontal,
-                                      ),
-                                      Text(
-                                        'Continue with Apple',
-                                        style: AppTypography.kBold18
-                                            .copyWith(color: AppColors.kWhite),
-                                      )
-                                    ],
-                                  ),
-                                )),
+                                      await AppleAuthService().signInWithApple();
+                                    },
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          AppAssets.kAppleLogo,
+                                          fit: BoxFit.contain,
+                                        ),
+                                        SizedBox(
+                                          width: AppSpacing.twentyHorizontal,
+                                        ),
+                                        Text(
+                                          'Continue with Apple',
+                                          style: AppTypography.kBold18
+                                              .copyWith(color: AppColors.kWhite),
+                                        )
+                                      ],
+                                    ),
+                                  )),
                             SizedBox(
                               height: AppSpacing.thirtyVertical,
                             ),

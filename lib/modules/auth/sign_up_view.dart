@@ -20,6 +20,7 @@ import '../../data/data/constants/app_assets.dart';
 import '../../data/data/constants/app_colors.dart';
 import '../../data/data/constants/app_spacing.dart';
 import '../../data/data/constants/app_typography.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../routes/app_routes.dart';
 import '../../widhets/common overlays/uploadFile_overlay.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
@@ -37,6 +38,21 @@ class SignUpViewController extends GetxController {
   // Password setup
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  final FocusNode emailFocusNode = FocusNode();
+
+  @override
+  void onClose() {
+    emailFocusNode.dispose();
+    fullNameController.dispose();
+    emailController.dispose();
+    phoneNumberController.dispose();
+    postalAddressController.dispose();
+    masterSecurityIdController.dispose();
+    photoIdController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.onClose();
+  }
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final GlobalKey<FormState> passwordFormKey = GlobalKey<FormState>();
@@ -71,12 +87,14 @@ class SignUpViewController extends GetxController {
 
   // ✅ Call this when password form is validated
   Future<void> submitSignup() async {
+    if (isLoading.value) return;
     if (passwordFormKey.currentState!.validate()) {
       if (passwordController.text != confirmPasswordController.text) {
         debugPrint("password do not match");
         return;
       }
 
+      isLoading.value = true;
       final apiService = MyApIService(); // create instance
       try {
         final response = await apiService.signUp(
@@ -111,6 +129,8 @@ class SignUpViewController extends GetxController {
           final Map<String, dynamic> responseBody = jsonDecode(response.body);
           final String errorMessage =
               responseBody['message'] ?? 'Unknown error';
+          final bool isEmailIssue = errorMessage.toLowerCase().contains('email') ||
+              errorMessage.toLowerCase().contains('user already exists');
 
           // Show dialog with one line call
 
@@ -123,7 +143,15 @@ class SignUpViewController extends GetxController {
                   style: const TextStyle(color: Colors.white)),
               actions: [
                 TextButton(
-                  onPressed: () => Get.back(),
+                  onPressed: () {
+                    Get.back(); // Dismiss error dialog
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.back(); // Return to Personal Info screen
+                      Future.delayed(const Duration(milliseconds: 250), () {
+                        emailFocusNode.requestFocus();
+                      });
+                    });
+                  },
                   child: const Text('OK',
                       style: TextStyle(color: AppColors.kSkyBlue)),
                 ),
@@ -133,6 +161,8 @@ class SignUpViewController extends GetxController {
         }
       } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
+      } finally {
+        isLoading.value = false;
       }
     }
   }
@@ -205,20 +235,12 @@ class SignUpView extends StatelessWidget {
                         hintText: "johndoe@gmail.com",
                         iconPath: AppAssets.kEmail,
                         controller: controller.emailController,
+                        focusNode: controller.emailFocusNode,
                         keyboardType: TextInputType.emailAddress,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(320)
                         ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")
-                              .hasMatch(value)) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
+                        validator: AppValidators.validateEmail,
                         onChanged: (value) {
                           controller.formKey.currentState!.validate();
                         },

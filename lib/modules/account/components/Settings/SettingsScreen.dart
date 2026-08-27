@@ -269,6 +269,7 @@
 //   }
 // }
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:location/location.dart';
@@ -526,22 +527,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  bool isSendingOtp = false;
+
   Future<void> sendOtp() async {
+    if (isSendingOtp) return;
+    setState(() => isSendingOtp = true);
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(color: AppColors.kSkyBlue),
+      ),
+      barrierDismissible: false,
+    );
     final apiService = MyApIService();
     try {
-      final response = await apiService.sendOtp(
-        userController.userData.value!.email.toString(),
-      );
+      final email = userController.userData.value?.email ?? '';
+      if (email.isEmpty) {
+        if (Get.isDialogOpen == true) Get.back();
+        Get.snackbar("Error", "Email not found. Please log in again.",
+            backgroundColor: Colors.red, colorText: Colors.white);
+        return;
+      }
+      final response = await apiService.sendOtp(email);
+
+      if (Get.isDialogOpen == true) Get.back();
 
       if (response.statusCode == 200) {
         debugPrint("data from API ${response.body}");
         Get.to(() => OtpScreen());
       } else {
         debugPrint("data from API ${response.body}");
-        debugPrint('Error login failed: ${response.body}');
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        final String errorMessage =
+            responseBody['message'] ?? 'Failed to send OTP';
+        Get.snackbar("Error", errorMessage,
+            backgroundColor: Colors.red, colorText: Colors.white);
       }
     } catch (e) {
+      if (Get.isDialogOpen == true) Get.back();
       debugPrint('Error Network error: ${e.toString()}');
+      Get.snackbar("Network Error", "Unable to connect to server.",
+          backgroundColor: Colors.red, colorText: Colors.white);
+    } finally {
+      if (mounted) {
+        setState(() => isSendingOtp = false);
+      }
     }
   }
 

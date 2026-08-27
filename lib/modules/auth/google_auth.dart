@@ -12,6 +12,7 @@ import '../../routes/app_routes.dart';
 class GoogleAuthService {
   MyApIService myApIService = MyApIService();
   SignInViewController signInViewController = Get.find<SignInViewController>();
+
   static String get androidClientId {
     // For debug builds (local development)
     if (kDebugMode) {
@@ -111,13 +112,13 @@ class GoogleAuthService {
 
   void _handleError(error) {
     debugPrint('Google Sign-In Error: $error');
+    final errStr = error.toString().toLowerCase();
 
-    if (error.toString().contains('canceled') ||
-        error.toString().contains('cancelled')) {
+    if (errStr.contains('cancel') || errStr.contains('12501')) {
       Get.snackbar("Cancelled", "Sign-in was cancelled.");
-    } else if (error.toString().contains('network')) {
+    } else if (errStr.contains('network')) {
       Get.snackbar("Network Error", "Please check your internet connection.");
-    } else if (error.toString().contains('sign_in_failed')) {
+    } else if (errStr.contains('sign_in_failed')) {
       Get.snackbar(
           "Sign-In Failed", "Please check your Google Console configuration.");
     } else {

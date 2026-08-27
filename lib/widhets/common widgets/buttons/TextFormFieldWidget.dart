@@ -14,7 +14,7 @@ class CustomTextField extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final bool? readOnly;
   final Function(String)? onChanged;
-
+  final FocusNode? focusNode;
 
   const CustomTextField({
     Key? key,
@@ -27,11 +27,13 @@ class CustomTextField extends StatelessWidget {
     this.validator,
     this.readOnly,
     this.onChanged,
+    this.focusNode,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      focusNode: focusNode,
       onChanged: (onChanged),
       readOnly: readOnly ?? false,
       onTap: onTap,

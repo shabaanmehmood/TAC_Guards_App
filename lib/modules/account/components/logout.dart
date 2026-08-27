@@ -12,6 +12,7 @@ import '../../Messages/socket_file.dart';
 
 class LogoutController extends GetxController {
   final userController = Get.find<UserController>();
+  var isLoggingOut = false.obs;
 
   Future<void> clearLoginSession() async {
     final prefs = await SharedPreferences.getInstance();
@@ -20,39 +21,41 @@ class LogoutController extends GetxController {
   }
 
   Future<void> logout() async {
+    if (isLoggingOut.value) return;
+    isLoggingOut.value = true;
     final apiService = MyApIService(); // create instance
-    try{
-      final response = await apiService.logout(
-        userController.userData.value!.id!,
-      );
-      if (response.statusCode == 200) {
-          final prefs = await SharedPreferences.getInstance();
+    try {
+      final userId = userController.userData.value?.id;
+      if (userId != null) {
+        final response = await apiService.logout(userId);
         debugPrint("data from logout API ${response.body}");
-           // Use the shared constants to remove the data
-        await prefs.remove(AppConstants.rememberEmailKey);
-        await prefs.remove(AppConstants.rememberPasswordKey);
-        await prefs.remove(AppConstants.loginTimeKey);
-
-         // ✅ Remove biometric login setting
-        await prefs.remove('biometric_login');
-        await prefs.remove('live_location');
-        
-        userController.clearUser();
-        SocketService().disconnect();
-
-        // await clearLoginSession();
-        Get.offAllNamed(AppRoutes.getSignInRoute());
-        // Clear the distance cache when logging out
-        if (Get.isRegistered<GuardsViewController>()) {
-          final guardsController = Get.find<GuardsViewController>();
-          guardsController.clearDistanceCache();
-        }
-      } else {
-        debugPrint('Error logout API failed: ${response.body}');
       }
-    }
-    catch(e){
+      
+      final prefs = await SharedPreferences.getInstance();
+      // Use the shared constants to remove the data
+      await prefs.remove(AppConstants.rememberEmailKey);
+      await prefs.remove(AppConstants.rememberPasswordKey);
+      await prefs.remove(AppConstants.loginTimeKey);
+
+      // ✅ Remove biometric login setting
+      await prefs.remove('biometric_login');
+      await prefs.remove('live_location');
+
+      userController.clearUser();
+      SocketService().disconnect();
+
+      // Clear the distance cache when logging out
+      if (Get.isRegistered<GuardsViewController>()) {
+        final guardsController = Get.find<GuardsViewController>();
+        guardsController.clearDistanceCache();
+      }
+
+      Get.offAllNamed(AppRoutes.getSignInRoute());
+    } catch (e) {
       debugPrint('Error Network error: ${e.toString()}');
+      Get.offAllNamed(AppRoutes.getSignInRoute());
+    } finally {
+      isLoggingOut.value = false;
     }
   }
 }
@@ -69,7 +72,7 @@ void showLogoutBottomSheet(BuildContext context) {
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
     ),
-    builder: (_) {
+    builder: (modalContext) {
       return Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -87,10 +90,18 @@ void showLogoutBottomSheet(BuildContext context) {
                     fontSize: 22,
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: const Icon(Icons.close, color: AppColors.kinput),
-                )
+                Obx(() => GestureDetector(
+                      onTap: controller.isLoggingOut.value
+                          ? null
+                          : () {
+                              if (Navigator.canPop(modalContext)) {
+                                Navigator.pop(modalContext);
+                              } else {
+                                Get.back();
+                              }
+                            },
+                      child: const Icon(Icons.close, color: AppColors.kinput),
+                    )),
               ],
             ),
             const SizedBox(height: 12),
@@ -108,38 +119,59 @@ void showLogoutBottomSheet(BuildContext context) {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Get.back(),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.transparent),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'No, Cancel',
-                      style: TextStyle(color: Colors.green),
-                    ),
-                  ),
+                  child: Obx(() => OutlinedButton(
+                        onPressed: controller.isLoggingOut.value
+                            ? null
+                            : () {
+                                if (Navigator.canPop(modalContext)) {
+                                  Navigator.pop(modalContext);
+                                } else {
+                                  Get.back();
+                                }
+                              },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.transparent),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'No, Cancel',
+                          style: TextStyle(color: Colors.green),
+                        ),
+                      )),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: controller.logout,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromRGBO(235, 0, 0, 0.15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      'Log Out',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
+                  child: Obx(() => ElevatedButton(
+                        onPressed: controller.isLoggingOut.value
+                            ? null
+                            : controller.logout,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromRGBO(235, 0, 0, 0.15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: controller.isLoggingOut.value
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.red,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Log Out',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                      )),
                 ),
               ],
-            )
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       );

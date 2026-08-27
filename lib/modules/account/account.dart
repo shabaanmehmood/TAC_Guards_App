@@ -321,9 +321,12 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart'; // ✅ Added
 import 'package:tac/data/data/constants/app_colors.dart';
+import 'package:tac/data/data/constants/app_spacing.dart';
+import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/account/components/Earning/earnings_screen.dart';
 import 'package:tac/modules/account/components/bank%20details/bank_details_screen.dart';
 import 'package:tac/modules/account/components/logout.dart';
@@ -357,117 +360,59 @@ class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AccountController controller = Get.put(AccountController());
-    // final userController = Get.find<UserController>().obs;
     final userController = Get.put(UserController());
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: AppColors.kDarkestBlue,
-      body: Column(
-        children: [
-          // Fixed Custom App Bar
-          Container(
-            width: double.infinity,
-            padding:
-                const EdgeInsets.only(left: 20, right: 20, top: 40, bottom: 10),
-            decoration: const BoxDecoration(
-              color: AppColors.kDarkestBlue,
-              border: Border(
-                bottom: BorderSide(width: 0.5, color: AppColors.kgrey),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    // Square Profile Image
-                    // Obx(() {
-                    //   final imagePath = userController
-                    //       .value.userData.value?.profileImages?.first.imageUrl;
-                    //   final imageUrl = MyApIService.fullImageUrl(imagePath);
-                    //   return Container(
-                    //     width: 34,
-                    //     height: 34,
-                    //     decoration: BoxDecoration(
-                    //       borderRadius: BorderRadius.circular(4),
-                    //       image: DecorationImage(
-                    //         image: imageUrl != null
-                    //             ? NetworkImage(imageUrl)
-                    //             : AssetImage(AppAssets.kUserPicture)
-                    //                 as ImageProvider,
-                    //         fit: BoxFit.cover,
-                    //       ),
-                    //     ),
-                    //   );
-                    // }),
-
-                       Builder(
-        builder: (_) {
-          final profileImages = userController.userData.value?.profileImages;
-          final mainImage = profileImages?.firstWhereOrNull((img) => img.isMain == true);
-          final imageUrl = (mainImage?.imageUrl != null && mainImage!.imageUrl!.isNotEmpty)
-              ? '${MyApIService.imageBaseUrl}/${mainImage.imageUrl}'
-              : null;
-
-          return Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: imageUrl != null
-                    ? NetworkImage(imageUrl)
-                    :  AssetImage(AppAssets.kUserPicture) as ImageProvider,
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
-        },
-      ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Account',
-                      style: GoogleFonts.outfit(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Fixed Custom App Bar
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.twentyHorizontal, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Image.asset(
+                        AppAssets.kTacLogo,
+                        height: Get.height * 0.045,
+                        fit: BoxFit.contain,
                       ),
-                    ),
-                  ],
-                ),
-                Stack(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Get.to<void>(() => NotificationScreen());
-                      },
-                      child: const Icon(Icons.notifications_none,
-                          color: Colors.white, size: 24),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.cyanAccent,
-                          shape: BoxShape.circle,
+                      const SizedBox(width: 4),
+                      Text(
+                        'Account',
+                        style: AppTypography.kBold16.copyWith(
+                          color: Colors.white,
                         ),
                       ),
-                    )
-                  ],
-                )
-              ],
+                    ],
+                  ),
+                  IconButton(
+                    focusColor: AppColors.kPrimary,
+                    color: AppColors.kPrimary,
+                    icon: SvgPicture.asset(
+                      width: 35,
+                      height: 35,
+                      AppAssets.kAlerts,
+                    ),
+                    onPressed: () {
+                      Get.to<void>(() => NotificationScreen());
+                    },
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // Scrollable content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(0, 32, 0, 16),
-              child: Column(
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Profile Header
@@ -589,8 +534,9 @@ class AccountScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget buildCard(
     double screenWidth,
