@@ -24,7 +24,7 @@ class SocketService {
   static const int maxReconnectAttempts = 5;
   static const Duration reconnectDelay = Duration(seconds: 3);
 
-  final String socketUrl = 'http://148.66.158.113:3006/';
+  final String socketUrl = 'https://api.control1security.com.au/';
 
   // Stream controller for chat list updates
   final StreamController<Map<String, dynamic>> _chatListController =

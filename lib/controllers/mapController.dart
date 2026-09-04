@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -356,10 +357,12 @@ class MapController extends GetxController {
       if (imageUrl.startsWith('http')) {
         print("🌐 Loading network image: $imageUrl");
         try {
-          imageBytes =
-              (await NetworkAssetBundle(Uri.parse(imageUrl)).load(imageUrl))
-                  .buffer
-                  .asUint8List();
+          final response = await http.get(Uri.parse(imageUrl));
+          if (response.statusCode != 200) {
+            throw Exception(
+                'HTTP ${response.statusCode} loading $imageUrl');
+          }
+          imageBytes = response.bodyBytes;
           print(
               "✅ Network image loaded successfully, size: ${imageBytes.length} bytes");
         } catch (e) {

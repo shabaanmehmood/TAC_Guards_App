@@ -477,6 +477,7 @@
 
 // FIXED SIGNIN SCREEN
 import 'dart:convert';
+import 'dart:io' show Platform;
 // temporary commented for testing
 // import 'dart:ffi';
 
@@ -538,6 +539,21 @@ class SignInViewController extends GetxController {
 
   Future<void> _initFCM() async {
     try {
+      if (Platform.isIOS) {
+        // On iOS, getToken() requires the APNS token to be registered first.
+        // Wait for it (with a short retry loop) before requesting the FCM token.
+        String? apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        int retries = 0;
+        while (apnsToken == null && retries < 10) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+          retries++;
+        }
+        if (apnsToken == null) {
+          debugPrint('APNS token unavailable, skipping FCM token fetch');
+          return;
+        }
+      }
       fcmToken = await FirebaseMessaging.instance.getToken();
       debugPrint('Initial FCM Token: $fcmToken');
     } catch (e) {
