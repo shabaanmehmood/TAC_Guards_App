@@ -20,6 +20,7 @@ import '../../data/data/constants/app_assets.dart';
 import '../../data/data/constants/app_colors.dart';
 import '../../data/data/constants/app_spacing.dart';
 import '../../data/data/constants/app_typography.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../routes/app_routes.dart';
 import '../../widhets/common overlays/uploadFile_overlay.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
@@ -37,13 +38,28 @@ class SignUpViewController extends GetxController {
   // Password setup
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  final FocusNode emailFocusNode = FocusNode();
+
+  @override
+  void onClose() {
+    emailFocusNode.dispose();
+    fullNameController.dispose();
+    emailController.dispose();
+    phoneNumberController.dispose();
+    postalAddressController.dispose();
+    masterSecurityIdController.dispose();
+    photoIdController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.onClose();
+  }
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final GlobalKey<FormState> passwordFormKey = GlobalKey<FormState>();
 
   String imageBase64 = '';
 
-  var isLoading = false.obs;  // RxBool to track loading state
+  var isLoading = false.obs; // RxBool to track loading state
 
   var setPasswordVisible = false.obs;
   var setConfirmPasswordVisible = false.obs;
@@ -51,6 +67,7 @@ class SignUpViewController extends GetxController {
   void togglePasswordView() {
     setPasswordVisible.value = !setPasswordVisible.value;
   }
+
   void toggleConfirmPasswordView() {
     setConfirmPasswordVisible.value = !setConfirmPasswordVisible.value;
   }
@@ -70,14 +87,16 @@ class SignUpViewController extends GetxController {
 
   // ✅ Call this when password form is validated
   Future<void> submitSignup() async {
+    if (isLoading.value) return;
     if (passwordFormKey.currentState!.validate()) {
       if (passwordController.text != confirmPasswordController.text) {
         debugPrint("password do not match");
         return;
       }
 
+      isLoading.value = true;
       final apiService = MyApIService(); // create instance
-      try{
+      try {
         final response = await apiService.signUp(
           fullNameController.text.toString(),
           emailController.text.toString(),
@@ -98,17 +117,52 @@ class SignUpViewController extends GetxController {
           if (loginRespone.statusCode == 200) {
             // Force refresh user data to ensure we have the latest including image
             final userController = Get.find<UserController>();
-            await userController.getUserData(); // This will update the user data including image
+            await userController
+                .getUserData(); // This will update the user data including image
 
             Get.offAllNamed(AppRoutes.getLandingPageRoute());
           }
           // await saveLoginSession();
         } else {
           debugPrint('Error Signup failed: ${response.body}');
+          debugPrint("data from API ${response.body}");
+          final Map<String, dynamic> responseBody = jsonDecode(response.body);
+          final String errorMessage =
+              responseBody['message'] ?? 'Unknown error';
+          final bool isEmailIssue = errorMessage.toLowerCase().contains('email') ||
+              errorMessage.toLowerCase().contains('user already exists');
+
+          // Show dialog with one line call
+
+          return Get.dialog(
+            AlertDialog(
+              backgroundColor: AppColors.kDarkestBlue,
+              title: const Text('Signup Failed',
+                  style: TextStyle(color: Colors.white)),
+              content: Text(errorMessage,
+                  style: const TextStyle(color: Colors.white)),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Get.back(); // Dismiss error dialog
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Get.back(); // Return to Personal Info screen
+                      Future.delayed(const Duration(milliseconds: 250), () {
+                        emailFocusNode.requestFocus();
+                      });
+                    });
+                  },
+                  child: const Text('OK',
+                      style: TextStyle(color: AppColors.kSkyBlue)),
+                ),
+              ],
+            ),
+          );
         }
-      }
-      catch(e){
+      } catch (e) {
         debugPrint('Error Network error: ${e.toString()}');
+      } finally {
+        isLoading.value = false;
       }
     }
   }
@@ -139,25 +193,20 @@ class SignUpView extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Create Account",
-                          style: AppTypography.kBold24.copyWith(
-                              color: AppColors.kWhite
-                          )
-                      ),
-                      Text(
-                        "Get Yourself Registered",
-                          style: AppTypography.kLight14.copyWith(
-                              color: Colors.grey
-                          )
-                      ),
+                      Text("Create Account",
+                          style: AppTypography.kBold24
+                              .copyWith(color: AppColors.kWhite)),
+                      Text("Get Yourself Registered",
+                          style: AppTypography.kLight14
+                              .copyWith(color: Colors.grey)),
                     ],
                   ),
                 ],
               ),
             ),
             Padding(
-              padding: EdgeInsets.only(top: Get.height * 0.18, bottom: AppSpacing.twentyVertical),
+              padding: EdgeInsets.only(
+                  top: Get.height * 0.18, bottom: AppSpacing.twentyVertical),
               child: SingleChildScrollView(
                 child: Form(
                   key: controller.formKey,
@@ -168,7 +217,9 @@ class SignUpView extends StatelessWidget {
                         controller: controller.fullNameController,
                         iconPath: AppAssets.kPerson,
                         hintText: "Full Name",
-                        inputFormatters: [LengthLimitingTextInputFormatter(320)],
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(320)
+                        ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Full name is required';
@@ -184,17 +235,12 @@ class SignUpView extends StatelessWidget {
                         hintText: "johndoe@gmail.com",
                         iconPath: AppAssets.kEmail,
                         controller: controller.emailController,
+                        focusNode: controller.emailFocusNode,
                         keyboardType: TextInputType.emailAddress,
-                        inputFormatters: [LengthLimitingTextInputFormatter(320)],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(value)) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(320)
+                        ],
+                        validator: AppValidators.validateEmail,
                         onChanged: (value) {
                           controller.formKey.currentState!.validate();
                         },
@@ -207,7 +253,9 @@ class SignUpView extends StatelessWidget {
                         keyboardType: TextInputType.number,
                         inputFormatters: [LengthLimitingTextInputFormatter(10)],
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty || value.length < 10) {
+                          if (value == null ||
+                              value.trim().isEmpty ||
+                              value.length < 10) {
                             return 'Please enter 10 digit phone number';
                           }
                           return null;
@@ -222,7 +270,9 @@ class SignUpView extends StatelessWidget {
                         iconPath: AppAssets.kLocation,
                         controller: controller.postalAddressController,
                         keyboardType: TextInputType.streetAddress,
-                        inputFormatters: [LengthLimitingTextInputFormatter(500)],
+                        inputFormatters: [
+                          LengthLimitingTextInputFormatter(500)
+                        ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Postal Address is required';
@@ -238,11 +288,11 @@ class SignUpView extends StatelessWidget {
                         hintText: "Master Security License",
                         iconPath: AppAssets.kPersonalCard,
                         controller: controller.masterSecurityIdController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.name,
                         inputFormatters: [LengthLimitingTextInputFormatter(14)],
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty || value.length < 14) {
-                            return 'Please enter 14 digit master security license #';
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter master security license #';
                           }
                           return null;
                         },
@@ -274,11 +324,17 @@ class SignUpView extends StatelessWidget {
                           //     controller.photoIdController.text = 'No image selected';
                           //   }
                           // });
-                          final UploadFileController uploadFileController = Get.put(UploadFileController());
-                          String? base64image = await uploadFileController.showUploadFileBottomSheet(context, returnBase64: true, showPickFileOption: false);
+                          final UploadFileController uploadFileController =
+                              Get.put(UploadFileController());
+                          String? base64image = await uploadFileController
+                              .showUploadFileBottomSheet(context,
+                                  returnBase64: true,
+                                  showPickFileOption: false);
                           if (base64image != null) {
                             controller.imageBase64 = base64image;
-                            controller.photoIdController.text = 'Photo ID uploaded';
+                            controller.photoIdController.text =
+                                'Photo ID uploaded';
+                            controller.formKey.currentState!.validate();
                           } else {
                             controller.formKey.currentState!.validate();
                           }
@@ -288,7 +344,7 @@ class SignUpView extends StatelessWidget {
                       SizedBox(height: AppSpacing.thirtyVertical),
                       PrimaryButton(
                         color: AppColors.kSkyBlue,
-                        onTap: ()async  {
+                        onTap: () async {
                           controller.savePersonalInfoAndGoNext();
                         },
                         text: 'Continue & Set Password',
@@ -299,23 +355,28 @@ class SignUpView extends StatelessWidget {
                         children: [
                           Text(
                             'Already have an account?',
-                            style: AppTypography.kBold16.copyWith(color: Colors.grey),
+                            style: AppTypography.kBold16
+                                .copyWith(color: Colors.grey),
                           ),
                           TextButton(
                             onPressed: () {
-                              Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+                              Get.offAllNamed<dynamic>(
+                                  AppRoutes.getSignInRoute());
                             },
                             child: Text(
                               'Login',
-                              style: AppTypography.kBold18.copyWith(color: AppColors.kSkyBlue),
+                              style: AppTypography.kBold18
+                                  .copyWith(color: AppColors.kSkyBlue),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.twentyVertical),
+                      SizedBox(height: AppSpacing.fiftyVertical),
+                      SizedBox(height: AppSpacing.thirtyVertical),
                       Text(
-                        'Powered by TAC Solutions',
-                        style: AppTypography.kLight14.copyWith(color: Colors.grey),
+                        'Powered by Control1 Security',
+                        style:
+                            AppTypography.kLight14.copyWith(color: Colors.grey),
                       ),
                     ],
                   ),

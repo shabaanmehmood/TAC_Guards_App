@@ -5,6 +5,7 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/data/data/constants/app_spacing.dart';
 import 'package:tac/data/data/constants/app_typography.dart';
 import 'package:tac/modules/checkin/jobcheckin/SubmitReviewScreen.dart';
+import 'package:tac/modules/jobApplications/my_jobs_view.dart';
 import 'package:tac/modules/reviews/review_submitted.dart';
 
 class JobStatusScreenSuccess extends StatelessWidget {
@@ -308,7 +309,8 @@ class JobStatusScreenSuccess extends StatelessWidget {
               ),
               onPressed: () {
                 // Navigate to next job screen
-                Get.toNamed('/nextJob');
+                // MyJobsView1(),
+                Get.to(() => MyJobsView1());
               },
               child: Text("Check My Next Job",
                   style:
@@ -326,7 +328,7 @@ class JobStatusScreenSuccess extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              onPressed: () => Get.back(),
+              onPressed: () => Get.to(() => MyJobsView1()),
               icon: Icon(Icons.arrow_back, size: 20),
               label: Text("Back to Jobs",
                   style: AppTypography.kBold16

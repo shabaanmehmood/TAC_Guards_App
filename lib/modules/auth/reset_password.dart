@@ -1,4 +1,3 @@
-
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
@@ -10,10 +9,10 @@ import 'package:get/get.dart';
 import 'package:tac/widhets/common%20widgets/buttons/password_field.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../widhets/common widgets/buttons/custom_icon_button.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
 import 'forget_password.dart';
-
 
 class ResetPasswordView extends StatelessWidget {
   final ForgetPasswordViewController controller = Get.find();
@@ -44,100 +43,99 @@ class ResetPasswordView extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          SizedBox(width: AppSpacing.tenHorizontal,),
+                          SizedBox(
+                            width: AppSpacing.tenHorizontal,
+                          ),
                           CustomIconButton(
-                            onTap: (){
-                              Get.back(canPop: true);
+                            onTap: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Get.back();
+                              }
                             },
                           ),
-                          SizedBox(width: AppSpacing.twentyHorizontal,),
-                          Text(
-                              "Reset Password",
-                              style: AppTypography.kBold32.copyWith(
-                                  color: AppColors.kWhite
-                              )
+                          SizedBox(
+                            width: AppSpacing.twentyHorizontal,
                           ),
+                          Text("Reset Password",
+                              style: AppTypography.kBold32
+                                  .copyWith(color: AppColors.kWhite)),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.tenVertical,),
+                      SizedBox(
+                        height: AppSpacing.tenVertical,
+                      ),
                       Row(
                         children: [
-                          SizedBox(width: AppSpacing.tenHorizontal,),
-                          Text(
-                              "Set new password here.",
-                              textAlign: TextAlign.start,
-                              style: AppTypography.kBold18.copyWith(
-                                  color: Colors.grey
-                              )
+                          SizedBox(
+                            width: AppSpacing.tenHorizontal,
                           ),
+                          Text("Set new password here.",
+                              textAlign: TextAlign.start,
+                              style: AppTypography.kBold18
+                                  .copyWith(color: Colors.grey)),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.fifteenVertical,),
-                      Obx(() =>
-                          CustomPasswordField(
+                      SizedBox(
+                        height: AppSpacing.fifteenVertical,
+                      ),
+                      Obx(() => CustomPasswordField(
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.passwordController,
-                            obscureText: !controller.setPasswordVisible.value, // Fix here
+                            obscureText: !controller
+                                .setPasswordVisible.value,
                             iconPath: AppAssets.kPassword,
                             hintText: "Password",
-                            passwordVisible: controller.setPasswordVisible.value,
+                            passwordVisible:
+                                controller.setPasswordVisible.value,
                             onPressed: () {
                               controller.togglePasswordView();
                             },
                             inputFormatters: [
-                              LengthLimitingTextInputFormatter(20)
+                              LengthLimitingTextInputFormatter(64)
                             ],
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.resetPasswordFormKey.currentState!
+                                  .validate();
                             },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 8) {
-                                return 'Password must be at least 8 characters';
-                              }
-                              return null;
-                            },
-                          )
-                      ),
+                            validator: AppValidators.validateSignupPassword,
+                          )),
                       SizedBox(height: AppSpacing.fifteenVertical),
-                      Obx(() =>
-                          CustomPasswordField(
+                      Obx(() => CustomPasswordField(
                             keyboardType: TextInputType.visiblePassword,
                             controller: controller.confirmPasswordController,
-                            obscureText: !controller.setConfirmPasswordVisible.value, // Fix here
+                            obscureText: !controller
+                                .setConfirmPasswordVisible.value,
                             iconPath: AppAssets.kPassword,
                             hintText: "Confirm Password",
-                            passwordVisible: controller.setConfirmPasswordVisible.value,
+                            passwordVisible:
+                                controller.setConfirmPasswordVisible.value,
                             onPressed: () {
                               controller.toggleConfirmPasswordView();
                             },
                             inputFormatters: [
-                              LengthLimitingTextInputFormatter(20)
+                              LengthLimitingTextInputFormatter(64)
                             ],
                             onChanged: (value) {
-                              controller.formKey.currentState!.validate();
+                              controller.resetPasswordFormKey.currentState!
+                                  .validate();
                             },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 8) {
-                                return 'Password must be at least 8 characters';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                AppValidators.validateConfirmPassword(
+                                    value, controller.passwordController.text),
                           )),
                       SizedBox(height: AppSpacing.thirtyVertical),
                       PrimaryButton(
                         color: AppColors.kSkyBlue,
-                        onTap: ()async  {
+                        onTap: () async {
                           await controller.resetPassword();
                         },
                         text: 'Update Password',
                       ),
-                      SizedBox(height: AppSpacing.twentyVertical,),
+                      SizedBox(
+                        height: AppSpacing.twentyVertical,
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -149,7 +147,8 @@ class ResetPasswordView extends StatelessWidget {
                           ),
                           TextButton(
                             onPressed: () {
-                              Get.offAllNamed<dynamic>(AppRoutes.getSignInRoute());
+                              Get.offAllNamed<dynamic>(
+                                  AppRoutes.getSignInRoute());
                             },
                             child: Text(
                               'Login',
@@ -160,9 +159,11 @@ class ResetPasswordView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.fifteenVertical,),
+                      SizedBox(
+                        height: AppSpacing.fifteenVertical,
+                      ),
                       Text(
-                        'Powered by TAC Solutions',
+                        'Powered by Control1 Security',
                         style: AppTypography.kLight14.copyWith(
                           color: Colors.grey,
                         ),

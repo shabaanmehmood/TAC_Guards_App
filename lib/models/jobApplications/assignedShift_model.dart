@@ -22,13 +22,17 @@ class AssignedShift {
   });
 
   factory AssignedShift.fromJson(Map<String, dynamic> json) => AssignedShift(
-    id: json['id'],
-    status: json['status'],
-    isLeader: json['isLeader'],
-    checkInRequired: json['checkInRequired'],
-    checkOutRequired: json['checkOutRequired'],
-    assignedAt: DateTime.parse(json['assignedAt']),
-    updatedAt: DateTime.parse(json['updatedAt']),
-    shift: Shift.fromJson(json['shift']),
-  );
+        id: json['id'],
+        status: json['status'],
+        isLeader: json['isLeader'],
+        checkInRequired: json['checkInRequired'] is bool
+            ? json['checkInRequired']
+            : json['checkInRequired'] == 'true',
+        checkOutRequired: json['checkOutRequired'] is bool
+            ? json['checkOutRequired']
+            : json['checkOutRequired'] == 'true',
+        assignedAt: DateTime.parse(json['assignedAt']),
+        updatedAt: DateTime.parse(json['updatedAt']),
+        shift: Shift.fromJson(json['shift']),
+      );
 }

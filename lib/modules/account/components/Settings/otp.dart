@@ -88,7 +88,13 @@ class _OtpScreenState extends State<OtpScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios,
               color: AppColors.kinput, size: 16),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Get.back();
+            }
+          },
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),

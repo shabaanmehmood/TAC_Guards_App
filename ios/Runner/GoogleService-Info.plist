@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>255779318742-6kk37jdk9258i1i25eskocg16r5v6opu.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.255779318742-6kk37jdk9258i1i25eskocg16r5v6opu</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>255779318742-7j19eupdmc44q8fsavioskug65vaph9n.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAFm0LmisC76iNY_mqS49EEz2trzzw-JWE</string>
 	<key>GCM_SENDER_ID</key>
@@ -9,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.tac</string>
+	<string>com.tac.guard</string>
 	<key>PROJECT_ID</key>
 	<string>tacguard-d07c7</string>
 	<key>STORAGE_BUCKET</key>
@@ -25,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:255779318742:ios:a40f2655e8a34e714c1277</string>
+	<string>1:255779318742:ios:9e33e7f2b406753e4c1277</string>
 </dict>
 </plist>

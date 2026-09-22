@@ -53,28 +53,72 @@ class NotificationController extends GetxController {
     }
   }
 
-  Future<void> markAllRead() async {
-    try {
-      final String guardId = userController.userData.value!.id!;
+  // Future<void> markAllRead() async {
+  //   try {
+  //     final String guardId = userController.userData.value!.id!;
       
-      // Call the API service to mark all notifications as read
-      await _notificationService.markAllNotificationsAsRead(guardId);
+  //     // Call the API service to mark all notifications as read
+  //     await _notificationService.markAllNotificationsAsRead(guardId);
       
-      // Clear the local list to update the UI
-      notifications.clear();
+  //     // Clear the local list to update the UI
+  //     notifications.clear();
       
-      Get.snackbar("Success", "All notifications have been marked as read.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.kGreenS,
-        colorText: AppColors.kWhite
-      );
+  //     Get.snackbar("Success", "All notifications have been marked as read.",
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: AppColors.kGreenS,
+  //       colorText: AppColors.kWhite
+  //     );
 
-    } catch (e) {
-      Get.snackbar("Error", e.toString(),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.kRed,
-        colorText: AppColors.kWhite,
-      );
-    }
+  //   } catch (e) {
+  //     Get.snackbar("Error", e.toString(),
+  //       snackPosition: SnackPosition.BOTTOM,
+  //       backgroundColor: AppColors.kRed,
+  //       colorText: AppColors.kWhite,
+  //     );
+  //   }
+  // }
+
+  Future<void> markAllRead() async {
+  // 1. If already empty → do nothing, no toast
+  if (notifications.isEmpty) {
+    return;
   }
+
+  try {
+    final String guardId = userController.userData.value!.id!;
+
+    // 2. Prevent double taps: loading lock
+    if (isLoading.value) return;
+    isLoading.value = true;
+
+    await _notificationService.markAllNotificationsAsRead(guardId);
+
+    // 3. Clear local data so no repeat toast next time
+    notifications.clear();
+
+    // 4. Show success toast only once
+    Get.closeAllSnackbars();         // <--- PREVENT QUEUED SNACKBARS
+    Get.snackbar(
+      "Success",
+      "All notifications have been marked as read.",
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.kGreenS,
+      colorText: AppColors.kWhite,
+      duration: const Duration(seconds: 2),
+    );
+
+  } catch (e) {
+    Get.closeAllSnackbars();         // prevent duplicate error messages
+    Get.snackbar(
+      "Error",
+      e.toString(),
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.kRed,
+      colorText: AppColors.kWhite,
+    );
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 }

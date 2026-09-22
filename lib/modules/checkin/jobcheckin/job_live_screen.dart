@@ -356,13 +356,15 @@ class JobLiveScreen extends StatelessWidget {
         } else if (hasMarkers) {
           cameraTarget = mapController.markers.value.first.position;
         } else {
-          cameraTarget = const LatLng(33.6844, 73.0479);
+          cameraTarget = MapController.australiaMapCenter;
         }
 
         return GoogleMap(
           initialCameraPosition: CameraPosition(
             target: cameraTarget,
-            zoom: 15,
+            zoom: hasJobPath || hasMarkers
+                ? 15
+                : MapController.australiaMapZoom,
           ),
           markers: mapController.markers.value,
           onMapCreated: (GoogleMapController googleMapController) {

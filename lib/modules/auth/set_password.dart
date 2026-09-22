@@ -1,4 +1,5 @@
-import 'dart:ffi';
+// temporary commented for testing
+// import 'dart:ffi';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/data/constants/app_assets.dart';
+import '../../data/data/helpers/validators.dart';
 import '../../models/onboarding.dart';
 import '../../widhets/common widgets/buttons/custom_icon_button.dart';
 import '../../widhets/common widgets/buttons/primary_button.dart';
@@ -48,133 +50,144 @@ class SetPasswordView extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          SizedBox(width: AppSpacing.tenHorizontal,),
+                          SizedBox(
+                            width: AppSpacing.tenHorizontal,
+                          ),
                           CustomIconButton(
-                            onTap: (){
-                              Get.back(canPop: true);
+                            onTap: () {
+                              if (Navigator.canPop(context)) {
+                                Navigator.pop(context);
+                              } else {
+                                Get.back();
+                              }
                             },
                           ),
-                          SizedBox(width: AppSpacing.twentyHorizontal,),
-                          Text(
-                              "Set Password",
-                              style: AppTypography.kBold32.copyWith(
-                                  color: AppColors.kWhite
-                              )
+                          SizedBox(
+                            width: AppSpacing.twentyHorizontal,
                           ),
+                          Text("Set Password",
+                              style: AppTypography.kBold32
+                                  .copyWith(color: AppColors.kWhite)),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.tenVertical,),
+                      SizedBox(
+                        height: AppSpacing.tenVertical,
+                      ),
                       Row(
                         children: [
-                          SizedBox(width: AppSpacing.tenHorizontal,),
-                          Text(
-                              "Set your password here.",
-                              textAlign: TextAlign.start,
-                              style: AppTypography.kBold18.copyWith(
-                                  color: Colors.grey
-                              )
+                          SizedBox(
+                            width: AppSpacing.tenHorizontal,
                           ),
+                          Text("Set your password here.",
+                              textAlign: TextAlign.start,
+                              style: AppTypography.kBold18
+                                  .copyWith(color: Colors.grey)),
                         ],
                       ),
-                      SizedBox(height: AppSpacing.fifteenVertical,),
+                      SizedBox(
+                        height: AppSpacing.fifteenVertical,
+                      ),
                       Obx(() => TextFormField(
-                        maxLength: 8,
-                        keyboardType: TextInputType.visiblePassword,
-                        controller: controller.passwordController,
-                        obscureText: !controller.setPasswordVisible.value, // Fix here
-                        cursorColor: AppColors.kSkyBlue,
-                        style: TextStyle(color: AppColors.kWhite),
-                        validator: (value){
-                          if (value == null || value.length < 8) {
-                            return "Password must be at least 8 characters";
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          controller.formKey.currentState!.validate();
-                        },
-                        decoration: InputDecoration(
-                          contentPadding: EdgeInsets.all(15),
-                          isDense: true,
-                          hintText: "Set Password",
-                          hintStyle: TextStyle(
-                            color: Colors.grey
-                          ),
-                          counter: const Offstage(),
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.all(15),
-                            child: SvgPicture.asset(AppAssets.kPassword, color: Colors.grey,),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              controller.setPasswordVisible.value
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              size: 20, color: Colors.grey,
-                            ),
-                            onPressed: () {
-                              controller.togglePasswordView();
+                            keyboardType: TextInputType.visiblePassword,
+                            controller: controller.passwordController,
+                            obscureText: !controller
+                                .setPasswordVisible.value,
+                            cursorColor: AppColors.kSkyBlue,
+                            style: TextStyle(color: AppColors.kWhite),
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(64)
+                            ],
+                            validator: AppValidators.validateSignupPassword,
+                            onChanged: (value) {
+                              controller.passwordFormKey.currentState!.validate();
                             },
-                          ),
-                        ),
-                      )),
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(15),
+                              isDense: true,
+                              hintText: "Set Password",
+                              hintStyle: TextStyle(color: Colors.grey),
+                              counter: const Offstage(),
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.all(15),
+                                child: SvgPicture.asset(
+                                  AppAssets.kPassword,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  controller.setPasswordVisible.value
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  size: 20,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  controller.togglePasswordView();
+                                },
+                              ),
+                            ),
+                          )),
                       SizedBox(height: AppSpacing.fifteenVertical),
                       Obx(() => TextFormField(
-                        maxLength: 8,
-                        keyboardType: TextInputType.visiblePassword,
-                        controller: controller.confirmPasswordController,
-                        obscureText: !controller.setConfirmPasswordVisible.value, // Fix here
-                        cursorColor: AppColors.kSkyBlue,
-                        style: TextStyle(color: AppColors.kWhite),
-                        validator: (value){
-                          if (value != controller.passwordController.text) {
-                            return "Passwords do not match";
-                          }
-                          return null;
-                        },
-                        onChanged: (value) {
-                          controller.formKey.currentState!.validate();
-                        },
-                        decoration: InputDecoration(
-                          counter: Offstage(),
-                          contentPadding: EdgeInsets.all(15),
-                          isDense: true,
-                          hintText: "Confirm Password",
-                          hintStyle: TextStyle(
-                            color: Colors.grey
-                          ),
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.all(15),
-                            child: SvgPicture.asset(AppAssets.kPassword, color: Colors.grey,),
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              controller.setConfirmPasswordVisible.value
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                              size: 20, color: Colors.grey,
-                            ),
-                            onPressed: () {
-                              controller.toggleConfirmPasswordView();
+                            keyboardType: TextInputType.visiblePassword,
+                            controller: controller.confirmPasswordController,
+                            obscureText: !controller
+                                .setConfirmPasswordVisible.value,
+                            cursorColor: AppColors.kSkyBlue,
+                            style: TextStyle(color: AppColors.kWhite),
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(64)
+                            ],
+                            validator: (value) =>
+                                AppValidators.validateConfirmPassword(
+                                    value, controller.passwordController.text),
+                            onChanged: (value) {
+                              controller.passwordFormKey.currentState!.validate();
                             },
-                          ),
-                        ),
-                      )),
+                            decoration: InputDecoration(
+                              counter: Offstage(),
+                              contentPadding: EdgeInsets.all(15),
+                              isDense: true,
+                              hintText: "Confirm Password",
+                              hintStyle: TextStyle(color: Colors.grey),
+                              prefixIcon: Padding(
+                                padding: EdgeInsets.all(15),
+                                child: SvgPicture.asset(
+                                  AppAssets.kPassword,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  controller.setConfirmPasswordVisible.value
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  size: 20,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  controller.toggleConfirmPasswordView();
+                                },
+                              ),
+                            ),
+                          )),
                       SizedBox(height: AppSpacing.thirtyVertical),
                       PrimaryButton(
                         color: AppColors.kSkyBlue,
-                        onTap: ()async {
+                        onTap: () async {
                           await controller.submitSignup();
                         },
                         text: 'Sign Up',
                       ),
-                      SizedBox(height: AppSpacing.twentyVertical,),
+                      SizedBox(
+                        height: AppSpacing.twentyVertical,
+                      ),
                       Center(
                         child: Text(
                           'By creating account, you agree to our terms and conditions',
-                          style: AppTypography.kLight14.copyWith(
-                            color: Colors.grey
-                          ),
+                          style: AppTypography.kLight14
+                              .copyWith(color: Colors.grey),
                         ),
                       ),
                     ],

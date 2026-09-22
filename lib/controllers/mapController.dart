@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -9,8 +10,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:tac/dataproviders/api_service.dart';
 import 'package:tac/models/nearbyjob.dart';
+import 'package:tac/controllers/user_controller.dart';
 
 class MapController extends GetxController {
+  static const LatLng australiaMapCenter = LatLng(-25.2744, 133.7751);
+  static const double australiaMapZoom = 4.5;
+
   var markers = <Marker>{}.obs;
   var mapController = Rxn<GoogleMapController>();
   var userPath = <LatLng>[].obs;
@@ -22,6 +27,7 @@ class MapController extends GetxController {
   LatLng? _currentUserLocation;
   final Rx<JobNearby?> selectedJob = Rx<JobNearby?>(null);
   CameraPosition? _lastCameraPosition;
+  final userController = Get.find<UserController>();
 
   @override
   void onInit() {
@@ -226,11 +232,20 @@ class MapController extends GetxController {
       print('API response: ${jobsResponse.data.length} jobs found');
 
       final newMarkers = <Marker>{};
-
+      String imgurl = 'assets/a.jpg';
       // ✅ User marker
       if (_currentUserLocation != null) {
         print("🎯 Creating user marker at: $_currentUserLocation");
-        final userIcon = await _createUserMarker("assets/a.jpg");
+
+        if (userController.userData.value != null) {
+          final userData = userController.userData.value!;
+
+          imgurl = userData.profileImages?.isNotEmpty == true
+              ? MyApIService.imageBaseUrl +
+                  userController.userData.value!.profileImages!.last.imageUrl!
+              : "assets/a.jpg";
+        }
+        final userIcon = await _createUserMarker(imgurl);
         newMarkers.add(
           Marker(
             markerId: const MarkerId('user_location'),
@@ -268,7 +283,7 @@ class MapController extends GetxController {
 
             // Fix common typo: replace 'uploadsimages' with 'uploads/images'
 
-            contractorImageUrl = "${myApiService.baseurl}${mainImage.url}";
+            contractorImageUrl = "${MyApIService.imageBaseUrl}${mainImage.url}";
             print(
                 "🖼️ Using API image for job ${job.jobId}: $contractorImageUrl");
           } else {
@@ -345,10 +360,12 @@ class MapController extends GetxController {
       if (imageUrl.startsWith('http')) {
         print("🌐 Loading network image: $imageUrl");
         try {
-          imageBytes =
-              (await NetworkAssetBundle(Uri.parse(imageUrl)).load(imageUrl))
-                  .buffer
-                  .asUint8List();
+          final response = await http.get(Uri.parse(imageUrl));
+          if (response.statusCode != 200) {
+            throw Exception(
+                'HTTP ${response.statusCode} loading $imageUrl');
+          }
+          imageBytes = response.bodyBytes;
           print(
               "✅ Network image loaded successfully, size: ${imageBytes.length} bytes");
         } catch (e) {

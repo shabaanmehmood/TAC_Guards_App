@@ -18,7 +18,7 @@ class JobDummyData {
   static const distance = "3.1 Km away";
 
   static const jobDescription =
-      "I am arriving at Islamabad, International Airport, and requires a professional security team for safe escort to his residence. The team must ensure smooth transportation, crowd control, and personal security throughout the journey.";
+      "I am arriving at Sydney International Airport and require a professional security team for safe escort to my residence. The team must ensure smooth transportation, crowd control, and personal security throughout the journey.";
 
   static const responsibilities = [
     "Meet & secure the actor upon arrival",

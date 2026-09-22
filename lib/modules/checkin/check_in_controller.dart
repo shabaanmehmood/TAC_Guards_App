@@ -118,12 +118,12 @@ class CheckInController extends GetxController {
     }
   }
 
-  Future<void> checkOut(String shiftId, String guardId, String latitude,
-      String longitude, String selfieBase64) async {
+  Future<void> checkOut(
+      String shiftId, String guardId, String latitude, String longitude) async {
     isLoading.value = true;
     try {
       final response = await apiService.checkOutGuard(
-          shiftId, guardId, latitude, longitude, selfieBase64);
+          shiftId, guardId, latitude, longitude, "check out");
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Stop monitoring after checkout
         await stopLocationMonitoring();

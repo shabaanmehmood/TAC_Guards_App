@@ -195,7 +195,8 @@
 //   }
 // }
 
-import 'dart:ffi';
+// temporary commented for testing
+// import 'dart:ffi';
 
 import 'package:flutter/services.dart';
 import 'package:tac/data/data/constants/app_colors.dart';
@@ -266,7 +267,11 @@ class EnterOtpView extends StatelessWidget {
                               SizedBox(width: AppSpacing.tenHorizontal),
                               CustomIconButton(
                                 onTap: () {
-                                  Get.back(canPop: true);
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  } else {
+                                    Get.back();
+                                  }
                                 },
                               ),
                               SizedBox(width: AppSpacing.twentyHorizontal),

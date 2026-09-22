@@ -7,12 +7,29 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:255779318742:android:73de4d8c98143bcd4c1277",
+        "mobilesdk_app_id": "1:255779318742:android:e98b65754cea48954c1277",
         "android_client_info": {
-          "package_name": "com.example.tac"
+          "package_name": "com.tac.guard"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "255779318742-7j19eupdmc44q8fsavioskug65vaph9n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tac.guard",
+            "certificate_hash": "70fa1608dba4c5c0a3f7c121dee748b53c606300"
+          }
+        },
+        {
+          "client_id": "255779318742-m1d9fgtfbug9cl1ui46v7nn0f4naabv3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tac.guard",
+            "certificate_hash": "4155867c049c1b9b035790ff4c6dfb642bb67682"
+          }
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB9x42796cI5tPVKveHvDeP5fANHTr8J6M"
