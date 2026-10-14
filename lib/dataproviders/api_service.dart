@@ -15,8 +15,8 @@ import '../models/userupdate_model.dart';
 import '../modules/Messages/socket_file.dart';
 
 class MyApIService {
-  
-  String baseurl = 'https://api.control1security.com.au/api/v1/'; //portal flutter.
+  String baseurl =
+      'https://api.control1security.com.au/api/v1/'; //portal flutter.
   Future<void> sendLocationToApi(String shiftId, String guardId, String jobId,
       double latitude, double longitude) async {
     final payload = {
@@ -109,6 +109,17 @@ class MyApIService {
 
       if (userDataModel.data != null) {
         final userId = userDataModel.data!.id;
+        final loginData = jsonData['data'];
+        final token = (loginData is Map<String, dynamic>
+                ? (loginData['token'] ?? loginData['accessToken'])
+                : null) ??
+            jsonData['token'] ??
+            jsonData['accessToken'];
+        userController.setAuthentication(
+          token: token?.toString(),
+          id: userId,
+          type: 'guard',
+        );
         debugPrint('User ID: $userId');
         // userController.setUser(userDataModel.data!);
         // final getuserbyid = await getUserByID(userId!);
@@ -293,8 +304,10 @@ class MyApIService {
 
   // static const String imageBaseUrl = 'http://148.66.158.113:3006/';
 
-  static const String imageBaseUrl = 'https://api.control1security.com.au/uploads/';
-  static const String imageBaseUrl1 = 'https://api.control1security.com.au/uploads';
+  static const String imageBaseUrl =
+      'https://api.control1security.com.au/uploads/';
+  static const String imageBaseUrl1 =
+      'https://api.control1security.com.au/uploads';
   static String? fullImageUrl(String? imagePath) {
     if (imagePath == null || imagePath.isEmpty) return null;
     return '$imageBaseUrl1$imagePath';
@@ -926,4 +939,107 @@ class MyApIService {
       throw Exception('Network error: Could not mark all as read.');
     }
   }
+
+  Future<http.Response> communityRequest(
+    String method,
+    String path, {
+    Map<String, String>? queryParameters,
+    Map<String, dynamic>? body,
+  }) async {
+    final token = userController.accessToken.value;
+    if (token == null || token.isEmpty) {
+      throw StateError('A login token is required to use Community.');
+    }
+
+    final uri = Uri.parse('$baseurl$path').replace(
+      queryParameters: queryParameters,
+    );
+    final request = http.Request(method, uri)
+      ..headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+        'ngrok-skip-browser-warning': 'true',
+      });
+    if (body != null) {
+      request.body = jsonEncode(body);
+    }
+
+    final client = http.Client();
+    try {
+      final streamedResponse = await client.send(request);
+      return await http.Response.fromStream(streamedResponse);
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<http.Response> getCommunityTopics() =>
+      communityRequest('GET', 'community/topics');
+
+  Future<http.Response> getCommunityFeed({
+    String filter = 'everyone',
+    String? topicId,
+    String? cursor,
+  }) {
+    return communityRequest(
+      'GET',
+      'community/feed',
+      queryParameters: {
+        'limit': '20',
+        if (topicId != null) 'topicId': topicId,
+        if (topicId == null) 'filter': filter,
+        if (cursor != null) 'cursor': cursor,
+      },
+    );
+  }
+
+  Future<http.Response> createCommunityPost(Map<String, dynamic> body) =>
+      communityRequest('POST', 'community/posts', body: body);
+
+  Future<http.Response> editCommunityPost(
+    String postId,
+    Map<String, dynamic> body,
+  ) =>
+      communityRequest('PATCH', 'community/posts/$postId', body: body);
+
+  Future<http.Response> deleteCommunityPost(String postId) =>
+      communityRequest('DELETE', 'community/posts/$postId');
+
+  Future<http.Response> getCommunityPost(
+    String postId, {
+    String? commentsCursor,
+  }) {
+    return communityRequest(
+      'GET',
+      'community/posts/$postId',
+      queryParameters: {
+        if (commentsCursor != null) 'commentsCursor': commentsCursor,
+      },
+    );
+  }
+
+  Future<http.Response> createCommunityComment(
+    String postId,
+    Map<String, dynamic> body,
+  ) =>
+      communityRequest(
+        'POST',
+        'community/posts/$postId/comments',
+        body: body,
+      );
+
+  Future<http.Response> getCommunityReplies(String commentId) =>
+      communityRequest('GET', 'community/comments/$commentId/replies');
+
+  Future<http.Response> reactToCommunityItem(Map<String, dynamic> body) =>
+      communityRequest('POST', 'community/reactions', body: body);
+
+  Future<http.Response> followCommunityAuthor(Map<String, dynamic> body) =>
+      communityRequest('POST', 'community/follows', body: body);
+
+  Future<http.Response> unfollowCommunityAuthor(Map<String, dynamic> body) =>
+      communityRequest('DELETE', 'community/follows', body: body);
+
+  Future<http.Response> reportCommunityItem(Map<String, dynamic> body) =>
+      communityRequest('POST', 'community/reports', body: body);
 }

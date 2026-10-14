@@ -8,6 +8,9 @@ import '../models/userdata_model.dart';
 
 class UserController extends GetxController {
   Rxn<Data> userData = Rxn<Data>();
+  final RxnString accessToken = RxnString();
+  final RxnString accountId = RxnString();
+  final RxString accountType = 'guard'.obs;
   late MyApIService apiService;
 
   @override
@@ -19,10 +22,24 @@ class UserController extends GetxController {
 
   void setUser(Data data) {
     userData.value = data;
+    accountId.value ??= data.id;
+  }
+
+  void setAuthentication({
+    required String? token,
+    required String? id,
+    String type = 'guard',
+  }) {
+    accessToken.value = token;
+    accountId.value = id;
+    accountType.value = type.toLowerCase();
   }
 
   void clearUser() {
     userData.value = null;
+    accessToken.value = null;
+    accountId.value = null;
+    accountType.value = 'guard';
   }
 
   Future<void> getUserData({String? userId}) async {

@@ -90,6 +90,17 @@ class GoogleAuthService {
 
       if (userDataModel.data != null) {
         final userId = userDataModel.data!.id;
+        final loginData = jsonData['data'];
+        final token = (loginData is Map<String, dynamic>
+                ? (loginData['token'] ?? loginData['accessToken'])
+                : null) ??
+            jsonData['token'] ??
+            jsonData['accessToken'];
+        Get.find<UserController>().setAuthentication(
+          token: token?.toString() ?? userDataModel.data!.token,
+          id: userId,
+          type: 'guard',
+        );
         final getUserResponse = await myApIService.getUserByID(userId!);
 
         if (getUserResponse.statusCode == 200) {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:tac/dataproviders/notification_services/notification_services.dart';
+import 'package:tac/modules/community/community_notification_router.dart';
 import 'dart:io';
 
 class NotificationHandlerController {
@@ -187,6 +188,8 @@ class NotificationHandlerController {
 
   static void _handleNotificationNavigation(RemoteMessage message) {
     final data = message.data;
+
+    CommunityNotificationRouter.open(data);
 
     if (data.containsKey('screen')) {
       String screen = data['screen'];

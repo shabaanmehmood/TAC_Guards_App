@@ -7,7 +7,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../controllers/user_controller.dart';
 
 class SocketService {
-  final String? userId = Get.find<UserController>().userData.value?.id;
+  String? get userId => Get.find<UserController>().accountId.value;
   String? _currentUserType = "Guard";
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
@@ -31,6 +31,10 @@ class SocketService {
   StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get chatListStream => _chatListController.stream;
+  final StreamController<Map<String, dynamic>> _communityController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get communityStream =>
+      _communityController.stream;
 
   void initialize() {
     if (_socket != null && _isConnected) {
@@ -38,12 +42,21 @@ class SocketService {
       return;
     }
 
+    final userController = Get.find<UserController>();
+    final accountType = userController.accountType.value.toLowerCase();
+    final accountId = userController.accountId.value;
     _socket = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'reconnection': true,
       'reconnectionAttempts': maxReconnectAttempts,
       'reconnectionDelay': reconnectDelay.inMilliseconds,
+      'query': {
+        if (accountId != null && accountType == 'contractor')
+          'contractorId': accountId
+        else if (accountId != null)
+          'userId': accountId,
+      },
     });
 
     _setupSocketListeners();
@@ -109,6 +122,25 @@ class SocketService {
     _socket!.on('receive_message', (data) {
       debugPrint('📨 New message received: $data');
     });
+
+    for (final eventName in [
+      'community:post-created',
+      'community:comment-created',
+      'community:reaction-updated',
+      'community:moderation',
+    ]) {
+      _socket!.on(eventName, (data) {
+        final payload = data is List && data.isNotEmpty ? data.first : data;
+        if (payload is Map) {
+          _communityController.add({
+            'event': eventName,
+            'data': Map<String, dynamic>.from(payload),
+          });
+        } else {
+          debugPrint('Ignoring malformed $eventName socket payload');
+        }
+      });
+    }
   }
 
   void _attemptReconnect() {
@@ -182,6 +214,7 @@ class SocketService {
 
   void dispose() {
     _chatListController.close();
+    _communityController.close();
     disconnect();
   }
 }

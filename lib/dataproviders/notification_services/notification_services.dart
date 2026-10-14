@@ -1,6 +1,9 @@
 import 'dart:io' show Platform;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:tac/modules/community/community_notification_router.dart';
 
 class NotificationServices {
   static final FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -99,9 +102,16 @@ class NotificationServices {
 
   // on tap local notification in foreground
   static void onNotificationTap(NotificationResponse notificationResponse) {
-    // navigatorKey.currentState!
-    //     .pushNamed("/message", arguments: notificationResponse);
-    print("Notification tapped: ${notificationResponse.payload}");
+    final payload = notificationResponse.payload;
+    if (payload == null || payload.isEmpty) return;
+    try {
+      final decoded = jsonDecode(payload);
+      if (decoded is Map) {
+        CommunityNotificationRouter.open(Map<String, dynamic>.from(decoded));
+      }
+    } on FormatException catch (error) {
+      debugPrint('Ignoring malformed notification payload: $error');
+    }
   }
 
   // show a simple notification - Platform specific

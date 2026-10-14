@@ -9,6 +9,8 @@ import 'package:tac/dataproviders/api_service.dart';
 import 'package:tac/models/nearbyjob.dart';
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/alerts/notification_view.dart';
+import 'package:tac/modules/community/community_screen.dart';
+import 'package:tac/modules/community/community_controller.dart';
 import 'package:tac/modules/home/components/search_field.dart';
 
 import '../../controllers/user_controller.dart';
@@ -20,6 +22,11 @@ class HomeView extends StatelessWidget {
   final MapController controller = Get.put(MapController(), permanent: true);
   final UserController userController = Get.find<UserController>();
   final GuardsViewController guardsController = Get.put(GuardsViewController());
+  final CommunityController communityController =
+      Get.isRegistered<CommunityController>()
+          ? Get.find<CommunityController>()
+          : Get.put(CommunityController(), permanent: true);
+  final RxBool _showMap = false.obs;
 
   // Helper method to format date
   String _formatDate(String dateString) {
@@ -96,6 +103,16 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kDarkBlue,
+      floatingActionButton: Obx(
+        () => _showMap.value || !communityController.isComposerVisible.value
+            ? const SizedBox.shrink()
+            : FloatingActionButton(
+                backgroundColor: const Color(0xFF00D3FF),
+                foregroundColor: const Color(0xFF0B132B),
+                onPressed: () => Get.to(() => const CommunityComposerScreen()),
+                child: const Icon(Icons.add),
+              ),
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,165 +120,176 @@ class HomeView extends StatelessWidget {
             _appBar(context),
             SizedBox(height: AppSpacing.tenVertical),
             Expanded(
-              child: Stack(
-                children: [
-                  Obx(() {
-                    return GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: controller.userPath.isNotEmpty
-                            ? controller.userPath.first
-                            : const LatLng(33.6844, 73.0479),
-                        zoom: 18,
-                      ),
-                      markers: controller.markers,
-                      myLocationEnabled: false,
-                      myLocationButtonEnabled: false,
-                      onMapCreated: (GoogleMapController mapController) {
-                        if (controller.userPath.isNotEmpty) {
-                          print(controller.userPath.first);
-                        }
-                        controller.setMapController(mapController);
-                        controller.requestAndSaveLocation();
-                      },
-                      onCameraMove: (position) {
-                        controller.updateCameraPosition(position);
-                      },
-                      onTap: (LatLng position) {
-                        // Close overlay when tapping anywhere on the map
-                        controller.clearSelectedJob();
-                      },
-                    );
-                  }),
-
-                  // ✅ Overlay for selected job
-                  Obx(() {
-                    final job = controller.selectedJob.value;
-                    if (job == null) return const SizedBox.shrink();
-
-                    return Align(
-                      alignment: Alignment.bottomCenter,
-                      child: GestureDetector(
-                        onTap: () {
-                          // Prevent the tap from propagating to the map
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Color(0xFF0B132B),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header with close button
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      job.jobTitle,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          color: Colors.white),
-                                    ),
-                                  ),
-                                  Text(
-                                      job.payPerHour != null
-                                          ? "\$${job.payPerHour}/hr"
-                                          : "Negotiable",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: Color(0xFF00D3FF))),
-                                ],
+              child: Obx(
+                () => _showMap.value
+                    ? Stack(
+                        children: [
+                          Obx(() {
+                            return GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: controller.userPath.isNotEmpty
+                                    ? controller.userPath.first
+                                    : const LatLng(33.6844, 73.0479),
+                                zoom: 18,
                               ),
-                              const SizedBox(height: 6),
+                              markers: controller.markers,
+                              myLocationEnabled: false,
+                              myLocationButtonEnabled: false,
+                              onMapCreated:
+                                  (GoogleMapController mapController) {
+                                if (controller.userPath.isNotEmpty) {
+                                  print(controller.userPath.first);
+                                }
+                                controller.setMapController(mapController);
+                                controller.requestAndSaveLocation();
+                              },
+                              onCameraMove: (position) {
+                                controller.updateCameraPosition(position);
+                              },
+                              onTap: (LatLng position) {
+                                // Close overlay when tapping anywhere on the map
+                                controller.clearSelectedJob();
+                              },
+                            );
+                          }),
 
-                              // Contractor Name
-                              Row(
-                                children: [
-                                  Icon(Icons.person,
-                                      size: 14, color: Colors.grey[400]),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    job.contractorName ?? "Contractor",
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                          // ✅ Overlay for selected job
+                          Obx(() {
+                            final job = controller.selectedJob.value;
+                            if (job == null) return const SizedBox.shrink();
+
+                            return Align(
+                              alignment: Alignment.bottomCenter,
+                              child: GestureDetector(
+                                onTap: () {
+                                  // Prevent the tap from propagating to the map
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF0B132B),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      )
+                                    ],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-
-                              // Job Location
-                              Row(
-                                children: [
-                                  Icon(Icons.location_on,
-                                      size: 14, color: Colors.grey[400]),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      job.jobLocation ??
-                                          "Location not specified",
-                                      style: TextStyle(
-                                        color: Colors.grey[400],
-                                        fontSize: 12,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Header with close button
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              job.jobTitle,
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                          Text(
+                                              job.payPerHour != null
+                                                  ? "\$${job.payPerHour}/hr"
+                                                  : "Negotiable",
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: Color(0xFF00D3FF))),
+                                        ],
                                       ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
+                                      const SizedBox(height: 6),
 
-                              // Shift Timing
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Icon(Icons.access_time,
-                                      size: 14, color: Colors.grey[400]),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: _buildShiftTiming(job),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
+                                      // Contractor Name
+                                      Row(
+                                        children: [
+                                          Icon(Icons.person,
+                                              size: 14,
+                                              color: Colors.grey[400]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            job.contractorName ?? "Contractor",
+                                            style: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
 
-                              // Distance
-                              Row(
-                                children: [
-                                  Icon(Icons.directions_walk,
-                                      size: 14, color: Colors.grey[400]),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    "${((job.distance ?? 0) * 1000).toStringAsFixed(1)} meters away",
-                                    style: TextStyle(
-                                      color: Colors.grey[400],
-                                      fontSize: 12,
-                                    ),
+                                      // Job Location
+                                      Row(
+                                        children: [
+                                          Icon(Icons.location_on,
+                                              size: 14,
+                                              color: Colors.grey[400]),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              job.jobLocation ??
+                                                  "Location not specified",
+                                              style: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontSize: 12,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+
+                                      // Shift Timing
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(Icons.access_time,
+                                              size: 14,
+                                              color: Colors.grey[400]),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: _buildShiftTiming(job),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+
+                                      // Distance
+                                      Row(
+                                        children: [
+                                          Icon(Icons.directions_walk,
+                                              size: 14,
+                                              color: Colors.grey[400]),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "${((job.distance ?? 0) * 1000).toStringAsFixed(1)} meters away",
+                                            style: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
+                            );
+                          }),
+                        ],
+                      )
+                    : const CommunityScreen(),
               ),
             )
           ],
@@ -291,10 +319,12 @@ class HomeView extends StatelessWidget {
                       fit: BoxFit.contain,
                     ),
                     SizedBox(width: 4),
-                    Text(
-                      'Home',
-                      style: AppTypography.kBold16
-                          .copyWith(color: AppColors.kWhite),
+                    Obx(
+                      () => Text(
+                        _showMap.value ? 'Home' : 'Community',
+                        style: AppTypography.kBold16
+                            .copyWith(color: AppColors.kWhite),
+                      ),
                     ),
                   ],
                 ),
@@ -309,6 +339,19 @@ class HomeView extends StatelessWidget {
                 //   },
                 // ),
                 const Spacer(),
+                Obx(
+                  () => IconButton(
+                    tooltip: _showMap.value ? 'Show community' : 'Show map',
+                    color: AppColors.kPrimary,
+                    onPressed: _showMap.toggle,
+                    icon: Icon(
+                      _showMap.value
+                          ? Icons.forum_outlined
+                          : Icons.map_outlined,
+                      color: AppColors.kSkyBlue,
+                    ),
+                  ),
+                ),
                 Stack(
                   children: [
                     Column(
@@ -379,14 +422,22 @@ class HomeView extends StatelessWidget {
                 // }),
               ],
             ),
-            SizedBox(height: AppSpacing.tenVertical),
-            SearchField(
-              isBorderBlue: true,
-              isEnabled: false,
-              text: 'Search for Security Guards',
-              isIconColorBlue: false,
-              icon2: AppAssets.kSearch,
-              guardsController: guardsController, // Pass the found controller
+            Obx(
+              () => _showMap.value
+                  ? Column(
+                      children: [
+                        SizedBox(height: AppSpacing.tenVertical),
+                        SearchField(
+                          isBorderBlue: true,
+                          isEnabled: false,
+                          text: 'Search for Security Guards',
+                          isIconColorBlue: false,
+                          icon2: AppAssets.kSearch,
+                          guardsController: guardsController,
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),
