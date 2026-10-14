@@ -279,8 +279,10 @@ class JobsMapView extends StatelessWidget {
                   initialCameraPosition: CameraPosition(
                     target: controller.userPath.isNotEmpty
                         ? controller.userPath.first
-                        : LatLng(0, 0),
-                    zoom: 15,
+                        : MapController.australiaMapCenter,
+                    zoom: controller.userPath.isNotEmpty
+                        ? 15
+                        : MapController.australiaMapZoom,
                   ),
                   markers: controller.markers.value,
                   onMapCreated: controller.setMapController,

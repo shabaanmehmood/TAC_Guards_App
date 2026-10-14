@@ -13,6 +13,9 @@ import 'package:tac/models/nearbyjob.dart';
 import 'package:tac/controllers/user_controller.dart';
 
 class MapController extends GetxController {
+  static const LatLng australiaMapCenter = LatLng(-25.2744, 133.7751);
+  static const double australiaMapZoom = 4.5;
+
   var markers = <Marker>{}.obs;
   var mapController = Rxn<GoogleMapController>();
   var userPath = <LatLng>[].obs;
