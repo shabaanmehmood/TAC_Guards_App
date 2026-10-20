@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import '../../controllers/user_controller.dart';
@@ -28,13 +27,19 @@ class SocketService {
 
   // Stream controller for chat list updates
   final StreamController<Map<String, dynamic>> _chatListController =
-  StreamController<Map<String, dynamic>>.broadcast();
+      StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<Map<String, dynamic>> get chatListStream => _chatListController.stream;
   final StreamController<Map<String, dynamic>> _communityController =
       StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get communityStream =>
       _communityController.stream;
+  final StreamController<Map<String, dynamic>> _supportController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get supportStream => _supportController.stream;
+  final StreamController<bool> _connectionController =
+      StreamController<bool>.broadcast();
+  Stream<bool> get connectionStream => _connectionController.stream;
 
   void initialize() {
     if (_socket != null && _isConnected) {
@@ -45,12 +50,14 @@ class SocketService {
     final userController = Get.find<UserController>();
     final accountType = userController.accountType.value.toLowerCase();
     final accountId = userController.accountId.value;
+    final token = userController.accessToken.value;
     _socket = IO.io(socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
       'reconnection': true,
       'reconnectionAttempts': maxReconnectAttempts,
       'reconnectionDelay': reconnectDelay.inMilliseconds,
+      if (token != null && token.isNotEmpty) 'auth': {'token': token},
       'query': {
         if (accountId != null && accountType == 'contractor')
           'contractorId': accountId
@@ -67,6 +74,7 @@ class SocketService {
     _socket!.onConnect((_) {
       debugPrint('✅ Socket connected successfully');
       _isConnected = true;
+      _connectionController.add(true);
       _reconnectAttempts = 0;
       _reconnectTimer?.cancel();
     });
@@ -74,12 +82,14 @@ class SocketService {
     _socket!.onDisconnect((_) {
       debugPrint('❌ Socket disconnected');
       _isConnected = false;
+      _connectionController.add(false);
       _attemptReconnect();
     });
 
     _socket!.onConnectError((error) {
       debugPrint('⚠️ Socket connection error: $error');
       _isConnected = false;
+      _connectionController.add(false);
       _attemptReconnect();
     });
 
@@ -103,7 +113,8 @@ class SocketService {
           if (data[0] is Map<String, dynamic>) {
             responseData = data[0] as Map<String, dynamic>;
           } else {
-            debugPrint('⚠️ Unexpected data format in array: ${data[0].runtimeType}');
+            debugPrint(
+                '⚠️ Unexpected data format in array: ${data[0].runtimeType}');
             return;
           }
         } else {
@@ -141,6 +152,38 @@ class SocketService {
         }
       });
     }
+
+    for (final eventName in [
+      'support:ticket-updated',
+      'support:message',
+      'support:queue-updated',
+      'support:error',
+    ]) {
+      _socket!.on(eventName, (data) {
+        final payload = data is List && data.isNotEmpty ? data.first : data;
+        if (payload is Map) {
+          _supportController.add({
+            'event': eventName,
+            'data': Map<String, dynamic>.from(payload),
+          });
+        } else {
+          debugPrint('Ignoring malformed $eventName socket payload');
+        }
+      });
+    }
+  }
+
+  void joinSupportTicket(String ticketId) {
+    _emitSupportEvent('support:join', {'ticketId': ticketId});
+  }
+
+  void leaveSupportTicket(String ticketId) {
+    _emitSupportEvent('support:leave', {'ticketId': ticketId});
+  }
+
+  void _emitSupportEvent(String eventName, Map<String, dynamic> payload) {
+    if (_socket == null) initialize();
+    _socket?.emit(eventName, payload);
   }
 
   void _attemptReconnect() {
@@ -152,7 +195,8 @@ class SocketService {
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(reconnectDelay, () {
       _reconnectAttempts++;
-      debugPrint('🔄 Reconnection attempt $_reconnectAttempts/$maxReconnectAttempts');
+      debugPrint(
+          '🔄 Reconnection attempt $_reconnectAttempts/$maxReconnectAttempts');
       _socket?.connect();
     });
   }
@@ -167,7 +211,10 @@ class SocketService {
       // Wait a bit for connection then emit
       Future.delayed(Duration(seconds: 2), () {
         if (_isConnected) {
-          _emitChatList(userId, userType,);
+          _emitChatList(
+            userId,
+            userType,
+          );
         }
       });
       return;

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:tac/modules/community/community_notification_router.dart';
+import 'package:tac/modules/account/support_notification_router.dart';
 
 class NotificationServices {
   static final FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -107,7 +108,9 @@ class NotificationServices {
     try {
       final decoded = jsonDecode(payload);
       if (decoded is Map) {
-        CommunityNotificationRouter.open(Map<String, dynamic>.from(decoded));
+        final data = Map<String, dynamic>.from(decoded);
+        CommunityNotificationRouter.open(data);
+        SupportNotificationRouter.open(data);
       }
     } on FormatException catch (error) {
       debugPrint('Ignoring malformed notification payload: $error');
