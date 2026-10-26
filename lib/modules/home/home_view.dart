@@ -10,7 +10,6 @@ import 'package:tac/models/nearbyjob.dart';
 import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/modules/alerts/notification_view.dart';
 import 'package:tac/modules/community/community_screen.dart';
-import 'package:tac/modules/community/community_controller.dart';
 import 'package:tac/modules/home/components/search_field.dart';
 
 import '../../controllers/user_controller.dart';
@@ -22,10 +21,6 @@ class HomeView extends StatelessWidget {
   final MapController controller = Get.put(MapController(), permanent: true);
   final UserController userController = Get.find<UserController>();
   final GuardsViewController guardsController = Get.put(GuardsViewController());
-  final CommunityController communityController =
-      Get.isRegistered<CommunityController>()
-          ? Get.find<CommunityController>()
-          : Get.put(CommunityController(), permanent: true);
   final RxBool _showMap = false.obs;
 
   // Helper method to format date
@@ -103,16 +98,6 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.kDarkBlue,
-      floatingActionButton: Obx(
-        () => _showMap.value || !communityController.isComposerVisible.value
-            ? const SizedBox.shrink()
-            : FloatingActionButton(
-                backgroundColor: const Color(0xFF00D3FF),
-                foregroundColor: const Color(0xFF0B132B),
-                onPressed: () => Get.to(() => const CommunityComposerScreen()),
-                child: const Icon(Icons.add),
-              ),
-      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
