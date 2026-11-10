@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -27,49 +26,25 @@ class AppleAuthService {
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
-        webAuthenticationOptions: WebAuthenticationOptions(
-          // ✅ Use your Apple Service ID for web (if needed)
-          clientId: 'com.yourcompany.taccontractor.service',
-          redirectUri: Uri.parse(
-            'https://your-domain.com/callbacks/sign_in_with_apple',
-          ),
-        ),
-        // Nonce is important for security - generate a random one
-        nonce: _generateNonce(),
       );
 
       debugPrint("Apple Sign-In success!");
-      debugPrint("User Identifier: ${credential.userIdentifier}");
-      debugPrint("Email: ${credential.email}");
-      debugPrint("Given Name: ${credential.givenName}");
-      debugPrint("Family Name: ${credential.familyName}");
       debugPrint(
           "Identity Token: ${credential.identityToken != null ? 'Received' : 'NULL'}");
-      debugPrint("Authorization Code: ${'Received'}");
 
-      // Check if we have the required tokens
-      if (credential.identityToken == null &&
-          credential.authorizationCode == null) {
-        Get.snackbar("Error", "No authentication tokens received from Apple.");
+      final identityToken = credential.identityToken;
+      if (identityToken == null) {
+        Get.snackbar("Error", "No identity token received from Apple.");
         return;
       }
 
-      // Get FCM token safely
       final fcmToken = signInViewController.fcmToken;
-      if (fcmToken == null) {
-        Get.snackbar("Error", "FCM token not available.");
-        return;
-      }
 
       debugPrint("Calling API with Apple credentials...");
 
-      // Call your API with Apple credentials
-      // You can send either identityToken or authorizationCode to your backend
       final response = await myApIService.appleLogin(
-        identityToken: credential.identityToken,
-        authorizationCode: credential.authorizationCode,
+        identityToken: identityToken,
         fcmToken: fcmToken,
-        email: credential.email,
         firstName: credential.givenName,
         lastName: credential.familyName,
       );
@@ -86,34 +61,40 @@ class AppleAuthService {
       final userDataModel = UserDataModel.fromJson(jsonData);
 
       if (userDataModel.data != null) {
-        final userId = userDataModel.data!.id;
+        final loginData = userDataModel.data!;
+        final userId = loginData.id;
+        final accessToken = loginData.accessToken;
+        if (userId == null || accessToken == null || accessToken.isEmpty) {
+          Get.snackbar("Error", "Apple login response is missing session data.");
+          return;
+        }
         debugPrint('User ID: $userId');
-        final loginData = jsonData['data'];
-        final token = (loginData is Map<String, dynamic>
-                ? (loginData['token'] ?? loginData['accessToken'])
-                : null) ??
-            jsonData['token'] ??
-            jsonData['accessToken'];
         Get.find<UserController>().setAuthentication(
-          token: token?.toString() ?? userDataModel.data!.token,
+          token: accessToken,
           id: userId,
           type: 'guard',
         );
 
-        final getUserResponse = await myApIService.getUserByID(userId!);
+        final getUserResponse = await myApIService.getUserByID(
+          userId,
+          accessToken: accessToken,
+        );
 
         if (getUserResponse.statusCode == 200) {
           final userData =
               GetUserById.fromJson(jsonDecode(getUserResponse.body)).data;
 
           if (userData != null) {
+            userData.accessToken = accessToken;
             Get.find<UserController>().setUser(userData);
 
-            // Use name from Apple credential - access properties directly
-            final displayName = credential.givenName ??
-                credential.familyName ??
-                userData.fullName ??
-                'User';
+            final credentialName = [
+              credential.givenName,
+              credential.familyName,
+            ].whereType<String>().where((name) => name.isNotEmpty).join(' ');
+            final displayName = credentialName.isNotEmpty
+                ? credentialName
+                : userData.fullName ?? 'User';
 
             Get.snackbar("Success", "Welcome $displayName!");
             debugPrint("Data from API: ${response.body}");
@@ -158,15 +139,6 @@ class AppleAuthService {
       Get.snackbar(
           "Error", "An unexpected error occurred: ${error.toString()}");
     }
-  }
-
-  // Generate a cryptographically secure nonce for Apple Sign-In
-  String _generateNonce([int length = 32]) {
-    const charset =
-        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
-        .join();
   }
 
   // Check if Apple Sign-In is available on this device

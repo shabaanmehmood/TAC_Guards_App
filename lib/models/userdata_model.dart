@@ -43,6 +43,7 @@ class Data {
   String? role;
   String? dob;
   String? token;
+  String? accessToken;
   bool? isVerified;
   String? fcmToken;
   String? gender;
@@ -71,6 +72,7 @@ class Data {
     this.role,
     this.dob,
     this.token,
+    this.accessToken,
     this.isVerified,
     this.fcmToken,
     this.gender,
@@ -100,6 +102,7 @@ class Data {
     role = json['role'];
     dob = json['dob'];
     token = json['token'];
+    accessToken = json['accessToken'];
     isVerified = json['isVerified'];
     fcmToken = json['fcmToken'];
     gender = json['gender'];
@@ -155,6 +158,7 @@ class Data {
     data['role'] = role;
     data['dob'] = dob;
     data['token'] = token;
+    data['accessToken'] = accessToken;
     data['isVerified'] = isVerified;
     data['fcmToken'] = fcmToken;
     data['gender'] = gender;

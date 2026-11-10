@@ -142,30 +142,25 @@ class MyApIService {
   }
 
   Future<http.Response> appleLogin({
-    required String? identityToken,
-    required String? authorizationCode,
-    required String fcmToken,
-    String? email,
+    required String identityToken,
+    String? fcmToken,
     String? firstName,
     String? lastName,
   }) async {
     final Map<String, dynamic> requestBody = {
-      'fcm_token': fcmToken,
-      if (identityToken != null) 'identity_token': identityToken,
-      if (authorizationCode != null) 'authorization_code': authorizationCode,
-      if (email != null) 'email': email,
-      if (firstName != null) 'first_name': firstName,
-      if (lastName != null) 'last_name': lastName,
+      'identityToken': identityToken,
+      'firstName': firstName,
+      'lastName': lastName,
+      'fcmToken': fcmToken,
     };
-
-    // Remove null values
     requestBody.removeWhere((key, value) => value == null);
 
-    debugPrint("Apple Login Request: ${jsonEncode(requestBody)}");
-
-    return await http.post(
-      Uri.parse('$baseurl/auth/apple-login'), // Your Apple login endpoint
-
+    return http.post(
+      Uri.parse('${baseurl}auth/apple-Auth'),
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
       body: jsonEncode(requestBody),
     );
   }
@@ -280,13 +275,16 @@ class MyApIService {
     return response;
   }
 
-  Future<http.Response> getUserByID(String userId) async {
+  Future<http.Response> getUserByID(String userId,
+      {String? accessToken}) async {
     var functionUrl = 'users/$userId';
     final response = await http.get(
       Uri.parse(baseurl + functionUrl),
       headers: {
         "Content-Type": "application/json",
         'ngrok-skip-browser-warning': 'true',
+        if (accessToken != null && accessToken.isNotEmpty)
+          'Authorization': 'Bearer $accessToken',
       },
     );
     if (response.statusCode == 200) {
