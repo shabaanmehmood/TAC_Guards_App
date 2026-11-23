@@ -112,7 +112,7 @@ class SignUpViewController extends GetxController {
           final loginRespone = await apiService.login(
             emailController.text.toString(),
             passwordController.text.toString(),
-            signInViewController.fcmToken!,
+            signInViewController.fcmToken,
           );
           if (loginRespone.statusCode == 200) {
             // Force refresh user data to ensure we have the latest including image
@@ -129,8 +129,9 @@ class SignUpViewController extends GetxController {
           final Map<String, dynamic> responseBody = jsonDecode(response.body);
           final String errorMessage =
               responseBody['message'] ?? 'Unknown error';
-          final bool isEmailIssue = errorMessage.toLowerCase().contains('email') ||
-              errorMessage.toLowerCase().contains('user already exists');
+          final bool isEmailIssue =
+              errorMessage.toLowerCase().contains('email') ||
+                  errorMessage.toLowerCase().contains('user already exists');
 
           // Show dialog with one line call
 

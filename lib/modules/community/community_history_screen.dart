@@ -136,7 +136,10 @@ class _CommunityHistoryScreenState extends State<CommunityHistoryScreen> {
     }
   }
 
-  bool get _canLoadMore => _pagination.values.any((pagination) {
+  bool get _canLoadMore => _pagination.entries
+      .where((entry) => entry.key != 'comments')
+      .any((entry) {
+        final pagination = entry.value;
         final page = _asInt(pagination['page']);
         final totalPages = _asInt(pagination['totalPages']);
         return page < totalPages;
@@ -197,7 +200,6 @@ class _CommunityHistoryScreenState extends State<CommunityHistoryScreen> {
                       _summaryCards(),
                       const SizedBox(height: 8),
                       _postsSection(),
-                      _commentsSection(),
                       _reactionsSection(),
                       _followingSection(),
                       if (_hasReports) _reportsSection(),
@@ -285,31 +287,34 @@ class _CommunityHistoryScreenState extends State<CommunityHistoryScreen> {
       ('reactions', 'Reactions'),
       ('following', 'Following'),
       ('followers', 'Followers'),
+      ('reports', 'Reports'),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: _cardDecoration(),
-      child: Row(
+      child: GridView.count(
+        crossAxisCount: 3,
+        mainAxisExtent: 42,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
         children: labels.map((entry) {
-          return Expanded(
-            child: Column(
-              children: [
-                Text(
-                  _asInt(_summary[entry.$1]).toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+          return Column(
+            children: [
+              Text(
+                _asInt(_summary[entry.$1]).toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  entry.$2,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white60, fontSize: 10),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                entry.$2,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white60, fontSize: 10),
+              ),
+            ],
           );
         }).toList(),
       ),
@@ -345,53 +350,6 @@ class _CommunityHistoryScreenState extends State<CommunityHistoryScreen> {
                   ownPost: false,
                   isReported: false,
                   showMoreOptions: false,
-                );
-              }).toList(),
-            ),
-    );
-  }
-
-  Widget _commentsSection() {
-    final comments = _items['comments']!;
-    return _section(
-      'Comments',
-      _asInt(_summary['comments']),
-      comments.isEmpty
-          ? _empty('No comments yet.')
-          : Column(
-              children: comments.map((comment) {
-                final post = _asMap(comment['post']);
-                final author = _asMap(post?['author']);
-                final isRemoved = comment['text'] == 'Comment removed';
-                return _historyRow(
-                  onTap: post == null
-                      ? null
-                      : () => _openPost(post['id']?.toString()),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (comment['parentCommentId'] != null) _eyebrow('Reply'),
-                      Text(
-                        comment['text'] as String? ?? '',
-                        style: TextStyle(
-                          color: isRemoved ? Colors.white38 : Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        post == null
-                            ? 'Post no longer available'
-                            : 'On: ${post['text'] ?? ''} · ${author?['name'] ?? 'Community member'}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
                 );
               }).toList(),
             ),
@@ -633,14 +591,6 @@ class _CommunityHistoryScreenState extends State<CommunityHistoryScreen> {
             fontSize: 11,
             fontWeight: FontWeight.bold,
           ),
-        ),
-      );
-
-  Widget _eyebrow(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 5),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white54, fontSize: 11),
         ),
       );
 

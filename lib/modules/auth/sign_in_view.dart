@@ -665,7 +665,7 @@ class SignInViewController extends GetxController {
         final response = await apiService.login(
           emailController.text.toString(),
           passwordController.text.toString(),
-          fcmToken!,
+          fcmToken,
         );
 
         if (response.statusCode == 200) {
@@ -811,7 +811,8 @@ class SignInView extends StatelessWidget {
                                   onPressed: () {
                                     controller.togglePasswordView();
                                   },
-                                  validator: AppValidators.validateLoginPassword,
+                                  validator:
+                                      AppValidators.validateLoginPassword,
                                   onChanged: (value) {
                                     controller.formKey.currentState!.validate();
                                   },
@@ -885,10 +886,12 @@ class SignInView extends StatelessWidget {
                                     onTap: () async {
                                       final googleAuthService =
                                           GoogleAuthService();
-                                      await googleAuthService.signInWithGoogle();
+                                      await googleAuthService
+                                          .signInWithGoogle();
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           AppAssets.kGoogleLogo,
@@ -899,8 +902,8 @@ class SignInView extends StatelessWidget {
                                         ),
                                         Text(
                                           'Continue with Google',
-                                          style: AppTypography.kBold18
-                                              .copyWith(color: AppColors.kWhite),
+                                          style: AppTypography.kBold18.copyWith(
+                                              color: AppColors.kWhite),
                                         )
                                       ],
                                     ),
@@ -911,8 +914,9 @@ class SignInView extends StatelessWidget {
                                   color: Colors.black,
                                   child: GestureDetector(
                                     onTap: () async {
-                                      final isAvailable = await AppleAuthService()
-                                          .isAppleSignInAvailable();
+                                      final isAvailable =
+                                          await AppleAuthService()
+                                              .isAppleSignInAvailable();
 
                                       if (!isAvailable) {
                                         Get.snackbar("Not Available",
@@ -920,10 +924,12 @@ class SignInView extends StatelessWidget {
                                         return;
                                       }
 
-                                      await AppleAuthService().signInWithApple();
+                                      await AppleAuthService()
+                                          .signInWithApple();
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           AppAssets.kAppleLogo,
@@ -934,8 +940,8 @@ class SignInView extends StatelessWidget {
                                         ),
                                         Text(
                                           'Continue with Apple',
-                                          style: AppTypography.kBold18
-                                              .copyWith(color: AppColors.kWhite),
+                                          style: AppTypography.kBold18.copyWith(
+                                              color: AppColors.kWhite),
                                         )
                                       ],
                                     ),

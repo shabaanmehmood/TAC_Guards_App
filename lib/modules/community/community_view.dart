@@ -1040,6 +1040,7 @@ class _CommunityViewState extends State<CommunityView> {
                 canEdit: ownPost && _canEdit(post),
                 ownPost: ownPost,
                 isReported: _reportedTargets.contains('post:${post['id']}'),
+                showMoreOptions: !ownPost,
               ),
       ),
     );

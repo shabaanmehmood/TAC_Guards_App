@@ -88,20 +88,20 @@ class MyApIService {
   }
 
   Future<http.Response> login(
-      String email, String password, String fcmToken) async {
+      String email, String password, String? fcmToken) async {
     var functionUrl = 'auth/login';
+    final requestBody = <String, dynamic>{
+      'email': email,
+      'password': password,
+      if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
+    };
     final response = await http.post(
       Uri.parse(baseurl + functionUrl),
       headers: {
         "Content-Type": "application/json",
         'ngrok-skip-browser-warning': 'true',
       },
-      body: jsonEncode({
-        // Encode body as JSON string
-        "email": email,
-        "password": password,
-        "fcmToken": fcmToken,
-      }),
+      body: jsonEncode(requestBody),
     );
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);

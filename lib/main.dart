@@ -1,4 +1,3 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,6 @@ import 'package:tac/data/data/constants/app_colors.dart';
 import 'package:tac/dataproviders/notification_services/notification_handler.dart';
 import 'package:tac/dataproviders/notification_services/notification_services.dart';
 import 'package:tac/firebase_options.dart';
-import 'package:tac/modules/Guards/guards_view.dart';
 import 'package:tac/routes/app_routes.dart';
 import 'controllers/user_controller.dart';
 import 'data/data/constants/app_theme.dart';
@@ -21,8 +19,11 @@ import 'package:local_auth/local_auth.dart';
 
 // ✅ Top-level background handler
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(); // required in background isolate
-  print("📩 Background message received: ${message.notification?.title}");
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  debugPrint(
+      'Background notification received: ${message.notification?.title}');
 }
 
 void main() async {
@@ -43,24 +44,13 @@ void main() async {
     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown],
   );
 
-  // ✅ Initialize Local Notifications
-  NotificationServices.requestNotificationPermission();
-  NotificationServices.localNotiInit();
-
-  // ✅ FCM Foreground & Terminated State
-  NotificationHandlerController.initializeFCMHandlers();
-  await NotificationHandlerController.handleTerminatedState();
-
   // ✅ Base Controllers
   Get.put(UserController(), permanent: true);
 
-  
   // ✅ Check SharedPreferences
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool? biometricEnabled = prefs.getBool('biometric_login');
   bool liveLocationEnabled = prefs.getBool('live_location') ?? false;
-
-
 
   // ✅ Conditionally enable location
   if (liveLocationEnabled) {
@@ -101,6 +91,9 @@ void main() async {
   }
 
   runApp(Main(initialRoute: initialRoute));
+  await WidgetsBinding.instance.endOfFrame;
+  await NotificationServices.localNotiInit();
+  await NotificationHandlerController.initializeFCMHandlers();
 }
 
 // ✅ Biometric Authentication Function

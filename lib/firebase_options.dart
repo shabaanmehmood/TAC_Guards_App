@@ -63,6 +63,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '255779318742',
     projectId: 'tacguard-d07c7',
     storageBucket: 'tacguard-d07c7.firebasestorage.app',
-    iosBundleId: 'com.example.tac',
+    iosBundleId: 'com.tac.guard',
   );
 }

@@ -418,7 +418,10 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
     }
   }
 
-  Future<void> _showPostActionsSheet(BuildContext context) async {
+  Future<void> _showPostActionsSheet(
+    BuildContext context, {
+    bool showManagementActions = false,
+  }) async {
     final author = widget.post['author'] is Map
         ? Map<String, dynamic>.from(widget.post['author'] as Map)
         : const <String, dynamic>{};
@@ -468,7 +471,7 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
                   ),
                   onTap: () => Navigator.pop(sheetContext, 'follow'),
                 ),
-              if (widget.canEdit)
+              if (showManagementActions && widget.canEdit)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined,
                       color: Colors.white, size: 22),
@@ -489,7 +492,7 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
                   ),
                   onTap: () => Navigator.pop(sheetContext, 'edit'),
                 ),
-              if (widget.ownPost)
+              if (showManagementActions && widget.ownPost)
                 ListTile(
                   leading: const Icon(Icons.delete_outline_rounded,
                       color: Colors.redAccent, size: 22),
@@ -1161,7 +1164,10 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
                       child: widget.ownPost
                           ? InkWell(
                               borderRadius: BorderRadius.circular(8),
-                              onTap: () => _showPostActionsSheet(context),
+                              onTap: () => _showPostActionsSheet(
+                                context,
+                                showManagementActions: true,
+                              ),
                               child: Padding(
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 8),
