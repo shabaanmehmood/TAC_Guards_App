@@ -40,8 +40,8 @@ android {
 
     defaultConfig {
         applicationId "com.tac.guard"
-        minSdkVersion flutter.minSdkVersion
-        targetSdk 35
+        minSdkVersion 24
+        targetSdk 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }

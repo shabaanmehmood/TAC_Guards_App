@@ -15,6 +15,7 @@ import 'components/create_post_view.dart';
 import 'components/post_card.dart';
 import 'components/report_reason_sheet.dart';
 import 'components/thread_view.dart';
+import 'community_history_screen.dart';
 
 export 'components/create_post_view.dart';
 export 'components/post_card.dart';
@@ -317,9 +318,16 @@ class _CommunityViewState extends State<CommunityView> {
 
   String _accountKey(String type, String id) => '$type:$id';
 
-  bool _isAuthor(Map<String, dynamic>? author) =>
-      author?['id'] == _userController.accountId.value &&
-      author?['type'] == _userController.accountType.value;
+  bool _isAuthor(Map<String, dynamic>? author) {
+    final authorId = author?['id'] as String?;
+    final accountId = _userController.accountId.value;
+    return authorId != null &&
+        authorId.isNotEmpty &&
+        accountId != null &&
+        accountId.isNotEmpty &&
+        authorId == accountId &&
+        author?['type'] == _userController.accountType.value;
+  }
 
   bool _canEdit(Map<String, dynamic> post) {
     final author = _mapValue(post['author']);
@@ -334,7 +342,8 @@ class _CommunityViewState extends State<CommunityView> {
 
     final age = DateTime.now().toUtc().difference(createdAt.toUtc());
     // Allow up to 15 minutes after creation; tolerate clock skew (up to 5 minutes in future)
-    return age <= const Duration(minutes: 15) && age >= const Duration(minutes: -5);
+    return age <= const Duration(minutes: 15) &&
+        age >= const Duration(minutes: -5);
   }
 
   Future<void> _loadFollowing() async {
@@ -581,8 +590,7 @@ class _CommunityViewState extends State<CommunityView> {
                     ),
                     child: const Text('Delete',
                         style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold)),
+                            color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -724,8 +732,8 @@ class _CommunityViewState extends State<CommunityView> {
             setState(() {
               final targetPost = _posts.firstWhereOrNull((p) => p['id'] == id);
               if (targetPost != null) {
-                final postCounts =
-                    Map<String, dynamic>.from(_mapValue(targetPost['counts']) ?? {});
+                final postCounts = Map<String, dynamic>.from(
+                    _mapValue(targetPost['counts']) ?? {});
                 postCounts['comments'] = count;
                 targetPost['counts'] = postCounts;
               }
@@ -782,9 +790,10 @@ class _CommunityViewState extends State<CommunityView> {
                 Expanded(child: _feedBody()),
               ],
             ),
-        floatingActionButton: !blocked
+      floatingActionButton: !blocked
           ? FloatingActionButton(
-              tooltip: _canPost ? 'Create post' : 'Posting requires verification',
+              tooltip:
+                  _canPost ? 'Create post' : 'Posting requires verification',
               backgroundColor:
                   _postingBlockedByServer ? Colors.grey : AppColors.kSkyBlue,
               foregroundColor: AppColors.kBlack,
@@ -851,7 +860,9 @@ class _CommunityViewState extends State<CommunityView> {
                               child: AnimatedDefaultTextStyle(
                                 duration: const Duration(milliseconds: 200),
                                 style: TextStyle(
-                                  color: isEveryone ? AppColors.kBlack : AppColors.kWhite,
+                                  color: isEveryone
+                                      ? AppColors.kBlack
+                                      : AppColors.kWhite,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13.5,
                                 ),
@@ -868,7 +879,9 @@ class _CommunityViewState extends State<CommunityView> {
                               child: AnimatedDefaultTextStyle(
                                 duration: const Duration(milliseconds: 200),
                                 style: TextStyle(
-                                  color: !isEveryone ? AppColors.kBlack : AppColors.kWhite,
+                                  color: !isEveryone
+                                      ? AppColors.kBlack
+                                      : AppColors.kWhite,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13.5,
                                 ),
@@ -1018,6 +1031,7 @@ class _CommunityViewState extends State<CommunityView> {
                 canFollow: canFollow,
                 onFollowToggle: () => _toggleFollow(author),
                 onOpenThread: () => _openThread(post),
+                onOpenAuthor: () => _openAuthorHistory(author),
                 onReact: (reaction) => _reactToPost(post, reaction),
                 onEdit: () => _editPost(post),
                 onDelete: () => _deletePost(post),
@@ -1034,6 +1048,18 @@ class _CommunityViewState extends State<CommunityView> {
   String _accountLabel(String? type) {
     if (type == null || type.isEmpty) return 'Member';
     return '${type[0].toUpperCase()}${type.substring(1)}';
+  }
+
+  void _openAuthorHistory(Map<String, dynamic> author) {
+    final type = author['type'] as String?;
+    final id = author['id'] as String?;
+    if (type == null ||
+        (type != 'guard' && type != 'contractor') ||
+        id == null ||
+        id.isEmpty) {
+      return;
+    }
+    Get.to<void>(() => CommunityHistoryScreen(authorType: type, authorId: id));
   }
 
   String _dateLabel(String? value) {
@@ -1182,8 +1208,7 @@ class _EditPostSheetState extends State<_EditPostSheet> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white12),
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               child: TextField(
                 controller: _textController,
                 maxLength: 2000,
@@ -1193,10 +1218,8 @@ class _EditPostSheetState extends State<_EditPostSheet> {
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: "What's on your mind?",
-                  hintStyle:
-                      TextStyle(color: Colors.white38, fontSize: 14),
-                  counterStyle:
-                      TextStyle(color: Colors.white38, fontSize: 11),
+                  hintStyle: TextStyle(color: Colors.white38, fontSize: 14),
+                  counterStyle: TextStyle(color: Colors.white38, fontSize: 11),
                 ),
               ),
             ),
@@ -1223,8 +1246,7 @@ class _EditPostSheetState extends State<_EditPostSheet> {
                 ),
                 child: const Text(
                   'Save Changes',
-                  style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),
             ),
@@ -1234,5 +1256,3 @@ class _EditPostSheetState extends State<_EditPostSheet> {
     );
   }
 }
-
-

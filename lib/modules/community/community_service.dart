@@ -93,6 +93,34 @@ class CommunityService {
     return _dataMap(response);
   }
 
+  Future<Map<String, dynamic>> fetchHistory({
+    required String type,
+    required String id,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final requestedPage = page < 1 ? 1 : page;
+    final requestedLimit = limit.clamp(1, 50);
+    final response = await _send(
+      'GET',
+      'history',
+      query: {
+        'type': type,
+        'id': id,
+        'page': '$requestedPage',
+        'limit': '$requestedLimit',
+      },
+    );
+    final data = response['data'];
+    if (data is! Map) {
+      throw const CommunityApiException(
+        500,
+        'The community history response was invalid.',
+      );
+    }
+    return Map<String, dynamic>.from(data);
+  }
+
   Future<CommunityPage> fetchComments(
     String postId, {
     String? cursor,

@@ -13,6 +13,7 @@ class LinkedInPostCard extends StatefulWidget {
   final bool canFollow;
   final VoidCallback onFollowToggle;
   final VoidCallback onOpenThread;
+  final VoidCallback? onOpenAuthor;
   final Function(String) onReact;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -21,6 +22,7 @@ class LinkedInPostCard extends StatefulWidget {
   final bool canEdit;
   final bool ownPost;
   final bool isReported;
+  final bool showMoreOptions;
 
   const LinkedInPostCard({
     Key? key,
@@ -32,6 +34,7 @@ class LinkedInPostCard extends StatefulWidget {
     required this.canFollow,
     required this.onFollowToggle,
     required this.onOpenThread,
+    this.onOpenAuthor,
     required this.onReact,
     required this.onEdit,
     required this.onDelete,
@@ -40,6 +43,7 @@ class LinkedInPostCard extends StatefulWidget {
     required this.canEdit,
     required this.ownPost,
     required this.isReported,
+    this.showMoreOptions = true,
   }) : super(key: key);
 
   @override
@@ -116,7 +120,8 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
     );
   }
 
-  Future<void> _openImageViewer(int initialIndex, List<String> imagePaths) async {
+  Future<void> _openImageViewer(
+      int initialIndex, List<String> imagePaths) async {
     if (imagePaths.isEmpty) return;
     int currentIndex = initialIndex;
     final pageController = PageController(initialPage: initialIndex);
@@ -414,6 +419,9 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
   }
 
   Future<void> _showPostActionsSheet(BuildContext context) async {
+    final author = widget.post['author'] is Map
+        ? Map<String, dynamic>.from(widget.post['author'] as Map)
+        : const <String, dynamic>{};
     final action = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -439,6 +447,27 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
                   ),
                 ),
               ),
+              if (widget.canFollow)
+                ListTile(
+                  leading: Icon(
+                    widget.isFollowed
+                        ? Icons.person_remove_alt_1_outlined
+                        : Icons.person_add_alt_1_outlined,
+                    color: widget.isFollowed
+                        ? Colors.white70
+                        : AppColors.kSkyBlue,
+                    size: 22,
+                  ),
+                  title: Text(
+                    '${widget.isFollowed ? 'Unfollow' : 'Follow'} ${author['name'] as String? ?? 'author'}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  onTap: () => Navigator.pop(sheetContext, 'follow'),
+                ),
               if (widget.canEdit)
                 ListTile(
                   leading: const Icon(Icons.edit_outlined,
@@ -536,6 +565,12 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
       widget.onDelete();
     } else if (action == 'report') {
       widget.onReport();
+    } else if (action == 'follow') {
+      if (widget.isFollowed) {
+        _showUnfollowSheet(context, author['name'] as String? ?? 'this user');
+      } else {
+        widget.onFollowToggle();
+      }
     }
   }
 
@@ -568,295 +603,234 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-            decoration: BoxDecoration(
-              color: AppColors.kJobCardColor,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
-                width: 1,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: widget.onOpenThread,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              decoration: BoxDecoration(
+                color: AppColors.kJobCardColor,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 // Header: Author Avatar, Name, Follow, Subtitles & Actions
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Professional LinkedIn Avatar with crisp circular mask & border
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.kDarkBlue,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          width: 1,
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: widget.onOpenAuthor,
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.kDarkBlue,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
+                            width: 1,
+                          ),
                         ),
-                      ),
-                      child: ClipOval(
-                        child: (avatarUrl != null && avatarUrl.isNotEmpty)
-                            ? CachedNetworkImage(
-                                imageUrl: avatarUrl,
-                                width: 46,
-                                height: 46,
-                                fit: BoxFit.cover,
-                                placeholder: (_, __) => Container(
-                                  color: AppColors.kDarkBlue,
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: AppColors.kSkyBlue,
+                        child: ClipOval(
+                          child: (avatarUrl != null && avatarUrl.isNotEmpty)
+                              ? CachedNetworkImage(
+                                  imageUrl: avatarUrl,
+                                  width: 46,
+                                  height: 46,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: AppColors.kDarkBlue,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.kSkyBlue,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                errorWidget: (_, __, ___) => const Icon(
+                                  errorWidget: (_, __, ___) => const Icon(
+                                    Icons.person,
+                                    color: Colors.white70,
+                                    size: 24,
+                                  ),
+                                )
+                              : const Icon(
                                   Icons.person,
                                   color: Colors.white70,
                                   size: 24,
                                 ),
-                              )
-                            : const Icon(
-                                Icons.person,
-                                color: Colors.white70,
-                                size: 24,
-                              ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  author['name'] as String? ??
-                                      'Community member',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: widget.onOpenAuthor,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    author['name'] as String? ??
+                                        'Community member',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  widget
+                                      .accountLabel(author['type'] as String?),
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.65),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(
-                                widget.accountLabel(author['type'] as String?),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.65),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (author['professionalBadge'] != null &&
-                                  (author['professionalBadge'] as String).isNotEmpty) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 1.5),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.kSkyBlue.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: AppColors.kSkyBlue.withValues(alpha: 0.4),
-                                      width: 0.8,
+                                if (author['professionalBadge'] != null &&
+                                    (author['professionalBadge'] as String)
+                                        .isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 1.5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.kSkyBlue
+                                          .withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: AppColors.kSkyBlue
+                                            .withValues(alpha: 0.4),
+                                        width: 0.8,
+                                      ),
                                     ),
-                                  ),
-                                  child: Text(
-                                    author['professionalBadge'] as String,
-                                    style: const TextStyle(
-                                      color: AppColors.kSkyBlue,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(
-                                widget.dateLabel(
-                                    widget.post['createdAt'] as String?),
-                                style: TextStyle(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.45),
-                                  fontSize: 11.5,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.public,
-                                size: 11.5,
-                                color: Colors.white.withValues(alpha: 0.45),
-                              ),
-                              if (widget.post['editedAt'] != null) ...[
-                                Text(
-                                  ' · Edited',
-                                  style: TextStyle(
-                                    color: Colors.white
-                                        .withValues(alpha: 0.45),
-                                    fontSize: 11.5,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Top Right: Follow / Following (Aligned with author name)
-                    if (widget.canFollow)
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () {
-                          if (widget.isFollowed) {
-                            _showUnfollowSheet(
-                                context, author['name'] as String? ?? 'this user');
-                          } else {
-                            widget.onFollowToggle();
-                          }
-                        },
-                            child: Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 8, top: 1, bottom: 4),
-                              child: widget.isFollowed
-                                  ? Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(
-                                          Icons.check_rounded,
-                                          size: 16,
-                                          color: Colors.white70,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Following',
-                                          style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Icon(
-                                          Icons.add_rounded,
-                                          size: 17,
-                                          color: AppColors.kSkyBlue,
-                                        ),
-                                        SizedBox(width: 3),
-                                        Text(
-                                          'Follow',
-                                          style: TextStyle(
-                                            color: AppColors.kSkyBlue,
-                                            fontSize: 14.5,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ),
-                      ],
-                    ),
-
-                    // Topic Tag (#TopicName text only, LinkedIn style)
-                    if (topic != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        '#${topic['name'] as String? ?? ''}',
-                        style: const TextStyle(
-                          color: AppColors.kSkyBlue,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-
-                    // Post Text Content with "...see more"
-                    if ((widget.post['text'] as String? ?? '').isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Builder(
-                        builder: (context) {
-                          final text = widget.post['text'] as String;
-                          final isLong = text.length > 130 ||
-                              '\n'.allMatches(text).length >= 3;
-                          if (!isLong || _isTextExpanded) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  text,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.5,
-                                    height: 1.45,
-                                    letterSpacing: 0.15,
-                                  ),
-                                ),
-                                if (isLong && _isTextExpanded)
-                                  GestureDetector(
-                                    onTap: () => setState(
-                                        () => _isTextExpanded = false),
-                                    child: const Padding(
-                                      padding: EdgeInsets.only(top: 4),
-                                      child: Text(
-                                        'see less',
-                                        style: TextStyle(
-                                          color: AppColors.kSkyBlue,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    child: Text(
+                                      author['professionalBadge'] as String,
+                                      style: const TextStyle(
+                                        color: AppColors.kSkyBlue,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
+                                ],
                               ],
-                            );
-                          }
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                text,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14.5,
-                                  height: 1.45,
-                                  letterSpacing: 0.15,
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                Text(
+                                  widget.dateLabel(
+                                      widget.post['createdAt'] as String?),
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.45),
+                                    fontSize: 11.5,
+                                  ),
                                 ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  Icons.public,
+                                  size: 11.5,
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                ),
+                                if (widget.post['editedAt'] != null) ...[
+                                  Text(
+                                    ' · Edited',
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.45),
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (widget.showMoreOptions)
+                      IconButton(
+                        tooltip: 'More options',
+                        visualDensity: VisualDensity.compact,
+                        constraints:
+                            const BoxConstraints(minWidth: 36, minHeight: 36),
+                        padding: EdgeInsets.zero,
+                        onPressed: () => _showPostActionsSheet(context),
+                        icon: const Icon(
+                          Icons.more_vert,
+                          color: Colors.white70,
+                        ),
+                      ),
+                  ],
+                ),
+
+                // Topic Tag (#TopicName text only, LinkedIn style)
+                if (topic != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    '#${topic['name'] as String? ?? ''}',
+                    style: const TextStyle(
+                      color: AppColors.kSkyBlue,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+
+                // Post Text Content with "...see more"
+                if ((widget.post['text'] as String? ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Builder(
+                    builder: (context) {
+                      final text = widget.post['text'] as String;
+                      final isLong = text.length > 130 ||
+                          '\n'.allMatches(text).length >= 3;
+                      if (!isLong || _isTextExpanded) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              text,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.5,
+                                height: 1.45,
+                                letterSpacing: 0.15,
                               ),
+                            ),
+                            if (isLong && _isTextExpanded)
                               GestureDetector(
                                 onTap: () =>
-                                    setState(() => _isTextExpanded = true),
+                                    setState(() => _isTextExpanded = false),
                                 child: const Padding(
-                                  padding: EdgeInsets.only(top: 2),
+                                  padding: EdgeInsets.only(top: 4),
                                   child: Text(
-                                    '...see more',
+                                    'see less',
                                     style: TextStyle(
                                       color: AppColors.kSkyBlue,
                                       fontSize: 13,
@@ -865,382 +839,399 @@ class _LinkedInPostCardState extends State<LinkedInPostCard> {
                                   ),
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
-
-                    // Job Card Link (if attached)
-                    if (widget.post['job'] is Map) ...[
-                      const SizedBox(height: 12),
-                      InkWell(
-                        onTap: () => widget.onOpenJob(
-                            Map<String, dynamic>.from(
-                                widget.post['job'] as Map)),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.kDarkBlue,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: AppColors.kSkyBlue
-                                  .withValues(alpha: 0.25),
-                              width: 1,
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            text,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.5,
+                              height: 1.45,
+                              letterSpacing: 0.15,
                             ),
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.kSkyBlue
-                                      .withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(8),
+                          GestureDetector(
+                            onTap: () => setState(() => _isTextExpanded = true),
+                            child: const Padding(
+                              padding: EdgeInsets.only(top: 2),
+                              child: Text(
+                                '...see more',
+                                style: TextStyle(
+                                  color: AppColors.kSkyBlue,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                child: const Icon(Icons.work_outline_rounded,
-                                    color: AppColors.kSkyBlue, size: 20),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.post['job']['title']
-                                              as String? ??
-                                          'Open job',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+
+                // Job Card Link (if attached)
+                if (widget.post['job'] is Map) ...[
+                  const SizedBox(height: 12),
+                  InkWell(
+                    onTap: () => widget.onOpenJob(
+                        Map<String, dynamic>.from(widget.post['job'] as Map)),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.kDarkBlue,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.kSkyBlue.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.kSkyBlue.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.work_outline_rounded,
+                                color: AppColors.kSkyBlue, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.post['job']['title'] as String? ??
+                                      'Open job',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '${widget.post['job']['location'] ?? ''} · \$${widget.post['job']['payPerHour'] ?? ''}/hr',
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.65),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded,
+                              color: AppColors.kSkyBlue, size: 14),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
+                // Multi-Image Carousel with Top-Right "1/4" Pill Badge
+                if (imagePaths.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Stack(
+                      children: [
+                        AspectRatio(
+                          aspectRatio: 16 / 10,
+                          child: PageView.builder(
+                            controller: _pageController,
+                            itemCount: imagePaths.length,
+                            onPageChanged: (index) {
+                              setState(() => _currentImageIndex = index);
+                            },
+                            itemBuilder: (context, index) {
+                              final imgUrl =
+                                  widget.service.imageUrl(imagePaths[index]);
+                              return GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () =>
+                                    _openImageViewer(index, imagePaths),
+                                child: CachedNetworkImage(
+                                  imageUrl: imgUrl,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Container(
+                                    color: AppColors.kDarkBlue,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const SizedBox(
+                                            width: 26,
+                                            height: 26,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.5,
+                                              color: AppColors.kSkyBlue,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Loading image...',
+                                            style: TextStyle(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.4),
+                                              fontSize: 11.5,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
+                                  ),
+                                  errorWidget: (_, __, ___) => Container(
+                                    color: AppColors.kDarkBlue,
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image_outlined,
+                                          color: Colors.white38, size: 40),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        if (imagePaths.length > 1)
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 9, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.72),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Text(
+                                '${_currentImageIndex + 1}/${imagePaths.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 10),
+
+                // LinkedIn Reaction & Comment Counters Row
+                if (reactionCount > 0 || commentCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (reactionCount > 0)
+                          Text(
+                            '$reactionCount ${reactionCount == 1 ? 'like' : 'likes'}',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          )
+                        else
+                          const SizedBox.shrink(),
+                        if (commentCount > 0)
+                          Text(
+                            '$commentCount ${commentCount == 1 ? 'comment' : 'comments'}',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.75),
+                              fontSize: 12.5,
+                            ),
+                          )
+                        else
+                          const SizedBox.shrink(),
+                      ],
+                    ),
+                  ),
+
+                Divider(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  height: 16,
+                  thickness: 0.8,
+                ),
+
+                // Action Buttons Row: Like, Comment & Report
+                Row(
+                  children: [
+                    // Like Button (Tap: Toggle Like/Dislike, Long Press: Reaction Picker)
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: () {
+                          widget.onReact(currentReaction ?? 'like');
+                        },
+                        onLongPress: () {
+                          setState(() {
+                            _showReactionPicker = true;
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _getReactionIcon(currentReaction),
+                                size: 19,
+                                color: currentReaction != null
+                                    ? _getReactionColor(currentReaction)
+                                    : Colors.white70,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _getReactionLabel(currentReaction),
+                                style: TextStyle(
+                                  color: currentReaction != null
+                                      ? _getReactionColor(currentReaction)
+                                      : Colors.white70,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                    // Comment Button
+                    Expanded(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(8),
+                        onTap: widget.onOpenThread,
+                        child: const Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 19,
+                                color: Colors.white70,
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Comment',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 18,
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                    // Report or Manage (for own post) Button
+                    Expanded(
+                      child: widget.ownPost
+                          ? InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => _showPostActionsSheet(context),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      widget.canEdit
+                                          ? Icons.edit_note_rounded
+                                          : Icons.delete_outline_rounded,
+                                      size: 19,
+                                      color: widget.canEdit
+                                          ? Colors.white70
+                                          : Colors.redAccent,
+                                    ),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      '${widget.post['job']['location'] ?? ''} · \$${widget.post['job']['payPerHour'] ?? ''}/hr',
+                                      widget.canEdit ? 'Manage' : 'Delete',
                                       style: TextStyle(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.65),
-                                        fontSize: 12,
+                                        color: widget.canEdit
+                                            ? Colors.white70
+                                            : Colors.redAccent,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward_ios_rounded,
-                                  color: AppColors.kSkyBlue, size: 14),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // Multi-Image Carousel with Top-Right "1/4" Pill Badge
-                    if (imagePaths.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Stack(
-                          children: [
-                            AspectRatio(
-                              aspectRatio: 16 / 10,
-                              child: PageView.builder(
-                                controller: _pageController,
-                                itemCount: imagePaths.length,
-                                onPageChanged: (index) {
-                                  setState(() => _currentImageIndex = index);
-                                },
-                                itemBuilder: (context, index) {
-                                  final imgUrl = widget.service
-                                      .imageUrl(imagePaths[index]);
-                                  return GestureDetector(
-                                    behavior: HitTestBehavior.opaque,
-                                    onTap: () => _openImageViewer(
-                                        index, imagePaths),
-                                    child: CachedNetworkImage(
-                                      imageUrl: imgUrl,
-                                      fit: BoxFit.cover,
-                                      placeholder: (_, __) => Container(
-                                        color: AppColors.kDarkBlue,
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const SizedBox(
-                                                width: 26,
-                                                height: 26,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2.5,
-                                                  color: AppColors.kSkyBlue,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'Loading image...',
-                                                style: TextStyle(
-                                                  color: Colors.white
-                                                      .withValues(alpha: 0.4),
-                                                  fontSize: 11.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      errorWidget: (_, __, ___) => Container(
-                                        color: AppColors.kDarkBlue,
-                                        child: const Center(
-                                          child: Icon(
-                                              Icons.broken_image_outlined,
-                                              color: Colors.white38,
-                                              size: 40),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            if (imagePaths.length > 1)
-                              Positioned(
-                                top: 10,
-                                right: 10,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 9, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.72),
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: Colors.white
-                                          .withValues(alpha: 0.15),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    '${_currentImageIndex + 1}/${imagePaths.length}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-
-                    const SizedBox(height: 10),
-
-                    // LinkedIn Reaction & Comment Counters Row
-                    if (reactionCount > 0 || commentCount > 0)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (reactionCount > 0)
-                              Text(
-                                '$reactionCount ${reactionCount == 1 ? 'like' : 'likes'}',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              )
-                            else
-                              const SizedBox.shrink(),
-                            if (commentCount > 0)
-                              Text(
-                                '$commentCount ${commentCount == 1 ? 'comment' : 'comments'}',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.75),
-                                  fontSize: 12.5,
-                                ),
-                              )
-                            else
-                              const SizedBox.shrink(),
-                          ],
-                        ),
-                      ),
-
-                    Divider(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      height: 16,
-                      thickness: 0.8,
-                    ),
-
-                    // Action Buttons Row: Like, Comment & Report
-                    Row(
-                      children: [
-                        // Like Button (Tap: Toggle Like/Dislike, Long Press: Reaction Picker)
-                        Expanded(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () {
-                              widget.onReact(currentReaction ?? 'like');
-                            },
-                            onLongPress: () {
-                              setState(() {
-                                _showReactionPicker = true;
-                              });
-                            },
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    _getReactionIcon(currentReaction),
-                                    size: 19,
-                                    color: currentReaction != null
-                                        ? _getReactionColor(currentReaction)
-                                        : Colors.white70,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _getReactionLabel(currentReaction),
-                                    style: TextStyle(
-                                      color: currentReaction != null
-                                          ? _getReactionColor(currentReaction)
+                            )
+                          : InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: widget.isReported ? null : widget.onReport,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      widget.isReported
+                                          ? Icons.flag_rounded
+                                          : Icons.flag_outlined,
+                                      size: 19,
+                                      color: widget.isReported
+                                          ? Colors.amber
                                           : Colors.white70,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
-                        // Comment Button
-                        Expanded(
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: widget.onOpenThread,
-                            child: const Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    size: 19,
-                                    color: Colors.white70,
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    'Comment',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      widget.isReported ? 'Reported' : 'Report',
+                                      style: TextStyle(
+                                        color: widget.isReported
+                                            ? Colors.amber
+                                            : Colors.white70,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 1,
-                          height: 18,
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
-                        // Report or Manage (for own post) Button
-                        Expanded(
-                          child: widget.ownPost
-                              ? InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () => _showPostActionsSheet(context),
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 8),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          widget.canEdit
-                                              ? Icons.edit_note_rounded
-                                              : Icons.delete_outline_rounded,
-                                          size: 19,
-                                          color: widget.canEdit
-                                              ? Colors.white70
-                                              : Colors.redAccent,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          widget.canEdit ? 'Manage' : 'Delete',
-                                          style: TextStyle(
-                                            color: widget.canEdit
-                                                ? Colors.white70
-                                                : Colors.redAccent,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: widget.isReported ? null : widget.onReport,
-                                  child: Padding(
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 8),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          widget.isReported
-                                              ? Icons.flag_rounded
-                                              : Icons.flag_outlined,
-                                          size: 19,
-                                          color: widget.isReported
-                                              ? Colors.amber
-                                              : Colors.white70,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          widget.isReported
-                                              ? 'Reported'
-                                              : 'Report',
-                                          style: TextStyle(
-                                            color: widget.isReported
-                                                ? Colors.amber
-                                                : Colors.white70,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  ],
                                 ),
-                        ),
-                      ],
+                              ),
+                            ),
                     ),
                   ],
                 ),
-              ),
+              ],
+            ),
+          ),
+          ),
 
           // Floating LinkedIn Reaction Bar Overlay on Long Press
           if (_showReactionPicker) ...[
